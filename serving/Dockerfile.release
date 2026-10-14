@@ -1,0 +1,25 @@
+# Release image: vLLM nightly + the Nemotron Deciffusion overlay + the SystemOne adapter. NO weights inside: at start,
+# start.sh serves a mounted checkpoint (CHECKPOINT_DIR, or a platform model mount) or downloads the pinned MODEL_ID
+# revision from Hugging Face into CHECKPOINT_DIR (mount a volume there to keep it across runs). One buildx call builds
+# amd64 + arm64:  docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.release -t <tag> serving/
+# Use serving/build_release.sh, which stages the vLLM overlay first.
+ARG VLLM_IMAGE=vllm/vllm-openai:nightly-fe4df3df0eb703862c686b256e9fe44fa94c8945
+FROM ${VLLM_IMAGE}
+# Release identity reported by /health and the served model name (e.g. nemotron-deciffusion/Nemotron-Deciffusion-8B-v2).
+ARG MODEL_ID=nemotron-deciffusion/Nemotron-Deciffusion-8B-v2
+ENV MODEL_ID=${MODEL_ID}
+# COPY-only (no RUN), so one buildx call cross-builds arm64 on an amd64 host without QEMU. vLLM lives at the same
+# site-packages path in the amd64 and arm64 nightly images.
+ARG VLLM_SITE=/usr/local/lib/python3.12/dist-packages
+COPY vllm-overlay/vllm/ ${VLLM_SITE}/vllm/
+WORKDIR /app
+COPY app/ /app/
+COPY --chmod=0755 start.sh /app/start.sh
+ENV CHECKPOINT_DIR=/models/checkpoint HF_HOME=/tmp/hf HF_MODULES_CACHE=/tmp/hf/modules PORT=8770 \
+    UPSTREAM_PORT=8200 VLLM_NO_USAGE_STATS=1 TOKENIZERS_PARALLELISM=true QUANTIZATION=fp8 \
+    POSITION_ORDERING=1 BATCH_TOKENIZE=1 DIRECT_LOGITS=1 \
+    ATTENTION=noncausal COMPACT_OVER=8192 COMPACT_BUDGET=8192 MAX_BATCHED_TOKENS=65536
+EXPOSE 8770
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10m \
+  CMD curl -fs http://127.0.0.1:${PORT}/health || exit 1
+ENTRYPOINT ["/app/start.sh"]

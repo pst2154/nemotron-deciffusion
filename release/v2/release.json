@@ -1,0 +1,139 @@
+{
+ "_comment": "Static release facts (names, licenses, URLs) used in the docs; results are in numbers.json.",
+ "release_date": "2026-10-14",
+ "author": "Alex Steiner",
+ "labels": {
+  "v2": "v2"
+ },
+ "base_model": "nvidia/Nemotron-Labs-Diffusion-8B",
+ "base_model_revision": "16c67f0560b912e93e0cabb6e0c4f5c3086d95fc",
+ "hf_repo": "nemotron-deciffusion/Nemotron-Deciffusion-8B-v2",
+ "hf_revision": "1dea38015e86e101eb978a33fa493818fc71e366",
+ "hf_repo_nvfp4": "nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4",
+ "container_image": "ghcr.io/pst2154/nemotron-deciffusion",
+ "container_tag": "8b-v2",
+ "container_tag_nvfp4": null,
+ "container_digest": null,
+ "code_url": "https://github.com/pst2154/nemotron-deciffusion",
+ "blog_url": "https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b",
+ "gist_id": "33a43e3f0c144f8200d3ce2f48c3925b",
+ "gist_url": "https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b",
+ "gist_filename": "nemotron-deciffusion-v2.md",
+ "model_license_name": "NVIDIA Nemotron Open Model License",
+ "model_license_url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/",
+ "code_license": "Apache License 2.0",
+ "nvfp4_status": "[nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4](https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4), mixed NVFP4/FP8 at 6.6 effective bits for Blackwell data-center GPUs (validated on GB200), faster than FP8 there",
+ "vllm_prs": "vllm-project/vllm#60283",
+ "attribution": [
+  {
+   "name": "Aegis 2.0 / Nemotron Content Safety Dataset V2",
+   "url": "https://huggingface.co/datasets/nvidia/Aegis-AI-Content-Safety-Dataset-2.0",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "When2Call",
+   "url": "https://huggingface.co/datasets/nvidia/When2Call",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "HelpSteer2",
+   "url": "https://huggingface.co/datasets/nvidia/HelpSteer2",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "HelpSteer3",
+   "url": "https://huggingface.co/datasets/nvidia/HelpSteer3",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "NVIDIA OpenScience",
+   "url": "https://huggingface.co/datasets/nvidia/OpenScience",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "Nemotron-RL knowledge MCQA",
+   "url": "https://huggingface.co/datasets/nvidia/Nemotron-RL-knowledge-mcqa",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "Nemotron-Science-v1",
+   "url": "https://huggingface.co/datasets/nvidia/Nemotron-Science-v1",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "Open-SWE-Traces",
+   "url": "https://huggingface.co/datasets/nvidia/Open-SWE-Traces",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "SWE-rebench OpenHands trajectories (Nebius)",
+   "url": "https://huggingface.co/datasets/nebius/SWE-rebench-openhands-trajectories",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "MASSIVE (Amazon)",
+   "url": "https://huggingface.co/datasets/AmazonScience/massive",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "QuALITY (Pang et al., NAACL 2022), train split",
+   "url": "https://github.com/nyu-mll/quality",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "MuSiQue",
+   "url": "https://github.com/StonyBrookNLP/musique",
+   "license": "CC-BY-4.0"
+  },
+  {
+   "name": "HotpotQA",
+   "url": "https://hotpotqa.github.io/",
+   "license": "CC-BY-SA-4.0"
+  },
+  {
+   "name": "SQuAD 2.0",
+   "url": "https://rajpurkar.github.io/SQuAD-explorer/",
+   "license": "CC-BY-SA-4.0"
+  },
+  {
+   "name": "AI2 ARC",
+   "url": "https://huggingface.co/datasets/allenai/ai2_arc",
+   "license": "CC-BY-SA-4.0"
+  },
+  {
+   "name": "Natural Questions (Google)",
+   "url": "https://ai.google.com/research/NaturalQuestions",
+   "license": "CC-BY-SA-3.0"
+  },
+  {
+   "name": "BoolQ",
+   "url": "https://github.com/google-research-datasets/boolean-questions",
+   "license": "CC-BY-SA-3.0"
+  },
+  {
+   "name": "WikiHop / QAngaroo",
+   "url": "https://qangaroo.cs.ucl.ac.uk/",
+   "license": "CC-BY-SA-3.0"
+  },
+  {
+   "name": "ShARC",
+   "url": "https://sharc-data.github.io/",
+   "license": "CC-BY-SA-3.0"
+  },
+  {
+   "name": "tasksource collection (CC-BY, CC-BY-SA and ODC-BY subsources)",
+   "url": "https://huggingface.co/tasksource",
+   "license": "per subsource"
+  },
+  {
+   "name": "PRM800K (OpenAI)",
+   "url": "https://github.com/openai/prm800k",
+   "license": "MIT"
+  },
+  {
+   "name": "Anthropic HH-RLHF",
+   "url": "https://huggingface.co/datasets/Anthropic/hh-rlhf",
+   "license": "MIT"
+  }
+ ]
+}

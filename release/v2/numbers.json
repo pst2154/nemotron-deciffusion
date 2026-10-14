@@ -1,0 +1,493 @@
+{
+ "tag": "v2",
+ "project_dir": "<project>",
+ "filled_at": "2026-10-14 22:17",
+ "values": {
+  "RELEASE_DATE": {
+   "text": "2026-10-14",
+   "source": "release/v2/release.json",
+   "how": "release_date"
+  },
+  "AUTHOR": {
+   "text": "Alex Steiner",
+   "source": "release/v2/release.json",
+   "how": "author"
+  },
+  "HF_REPO": {
+   "text": "nemotron-deciffusion/Nemotron-Deciffusion-8B-v2",
+   "source": "release/v2/release.json",
+   "how": "hf_repo"
+  },
+  "HF_REVISION": {
+   "text": "1dea38015e86e101eb978a33fa493818fc71e366",
+   "source": "release/v2/release.json",
+   "how": "hf_revision"
+  },
+  "HF_REPO_NVFP4": {
+   "text": "nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4",
+   "source": "release/v2/release.json",
+   "how": "hf_repo_nvfp4"
+  },
+  "CONTAINER_IMAGE": {
+   "text": "ghcr.io/pst2154/nemotron-deciffusion",
+   "source": "release/v2/release.json",
+   "how": "container_image"
+  },
+  "CONTAINER_TAG": {
+   "text": "8b-v2",
+   "source": "release/v2/release.json",
+   "how": "container_tag"
+  },
+  "CODE_URL": {
+   "text": "https://github.com/pst2154/nemotron-deciffusion",
+   "source": "release/v2/release.json",
+   "how": "code_url"
+  },
+  "BLOG_URL": {
+   "text": "https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b",
+   "source": "release/v2/release.json",
+   "how": "blog_url"
+  },
+  "MODEL_LICENSE_NAME": {
+   "text": "NVIDIA Nemotron Open Model License",
+   "source": "release/v2/release.json",
+   "how": "model_license_name"
+  },
+  "MODEL_LICENSE_URL": {
+   "text": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/",
+   "source": "release/v2/release.json",
+   "how": "model_license_url"
+  },
+  "CODE_LICENSE": {
+   "text": "Apache License 2.0",
+   "source": "release/v2/release.json",
+   "how": "code_license"
+  },
+  "NVFP4_STATUS": {
+   "text": "[nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4](https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4), mixed NVFP4/FP8 at 6.6 effective bits for Blackwell data-center GPUs (validated on GB200), faster than FP8 there",
+   "source": "release/v2/release.json",
+   "how": "nvfp4_status"
+  },
+  "VLLM_PRS": {
+   "text": "vllm-project/vllm#60283",
+   "source": "release/v2/release.json",
+   "how": "vllm_prs"
+  },
+  "BASE_MODEL": {
+   "text": "nvidia/Nemotron-Labs-Diffusion-8B",
+   "source": "release/v2/release.json",
+   "how": "base_model"
+  },
+  "BASE_MODEL_REVISION": {
+   "text": "16c67f0560b912e93e0cabb6e0c4f5c3086d95fc",
+   "source": "release/v2/release.json",
+   "how": "base_model_revision"
+  },
+  "ATTRIBUTION_LIST": {
+   "text": "- [Aegis 2.0 / Nemotron Content Safety Dataset V2](https://huggingface.co/datasets/nvidia/Aegis-AI-Content-Safety-Dataset-2.0): CC-BY-4.0\n- [When2Call](https://huggingface.co/datasets/nvidia/When2Call): CC-BY-4.0\n- [HelpSteer2](https://huggingface.co/datasets/nvidia/HelpSteer2): CC-BY-4.0\n- [HelpSteer3](https://huggingface.co/datasets/nvidia/HelpSteer3): CC-BY-4.0\n- [NVIDIA OpenScience](https://huggingface.co/datasets/nvidia/OpenScience): CC-BY-4.0\n- [Nemotron-RL knowledge MCQA](https://huggingface.co/datasets/nvidia/Nemotron-RL-knowledge-mcqa): CC-BY-4.0\n- [Nemotron-Science-v1](https://huggingface.co/datasets/nvidia/Nemotron-Science-v1): CC-BY-4.0\n- [Open-SWE-Traces](https://huggingface.co/datasets/nvidia/Open-SWE-Traces): CC-BY-4.0\n- [SWE-rebench OpenHands trajectories (Nebius)](https://huggingface.co/datasets/nebius/SWE-rebench-openhands-trajectories): CC-BY-4.0\n- [MASSIVE (Amazon)](https://huggingface.co/datasets/AmazonScience/massive): CC-BY-4.0\n- [QuALITY (Pang et al., NAACL 2022), train split](https://github.com/nyu-mll/quality): CC-BY-4.0\n- [MuSiQue](https://github.com/StonyBrookNLP/musique): CC-BY-4.0\n- [HotpotQA](https://hotpotqa.github.io/): CC-BY-SA-4.0\n- [SQuAD 2.0](https://rajpurkar.github.io/SQuAD-explorer/): CC-BY-SA-4.0\n- [AI2 ARC](https://huggingface.co/datasets/allenai/ai2_arc): CC-BY-SA-4.0\n- [Natural Questions (Google)](https://ai.google.com/research/NaturalQuestions): CC-BY-SA-3.0\n- [BoolQ](https://github.com/google-research-datasets/boolean-questions): CC-BY-SA-3.0\n- [WikiHop / QAngaroo](https://qangaroo.cs.ucl.ac.uk/): CC-BY-SA-3.0\n- [ShARC](https://sharc-data.github.io/): CC-BY-SA-3.0\n- [tasksource collection (CC-BY, CC-BY-SA and ODC-BY subsources)](https://huggingface.co/tasksource): per subsource\n- [PRM800K (OpenAI)](https://github.com/openai/prm800k): MIT\n- [Anthropic HH-RLHF](https://huggingface.co/datasets/Anthropic/hh-rlhf): MIT",
+   "source": "release/v2/release.json",
+   "how": "attribution[] (from the data card attribution notice)"
+  },
+  "CONTAINER": {
+   "text": "ghcr.io/pst2154/nemotron-deciffusion:8b-v2",
+   "source": "release/v2/release.json",
+   "how": "container_image:container_tag"
+  },
+  "V2_JEVBENCH": {
+   "text": "210/231",
+   "source": "logs/f-v2.eval.done (or logs/neval-f-v2.log)",
+   "how": "compare.metrics('v2')['jevbench']"
+  },
+  "V2_TIER_HARD": {
+   "text": "90/111",
+   "source": "results/m-f-v2-jevbench/predictions.jsonl",
+   "how": "compare.metrics('v2')['tier:hard']"
+  },
+  "V2_EVAL": {
+   "text": "528/578",
+   "source": "results/m-f-v2-eval/predictions.jsonl minus lineage/eval_decontam.txt",
+   "how": "compare.metrics('v2')['eval']"
+  },
+  "V2_AUDIT": {
+   "text": "618/678",
+   "source": "results/m-f-v2-audit/predictions.jsonl minus lineage/eval_decontam.txt",
+   "how": "compare.metrics('v2')['audit']"
+  },
+  "V2_BABILONG_4K": {
+   "text": "99.2",
+   "source": "results/long-v2.summary.json",
+   "how": "compare.metrics('v2')['babilong-4k']"
+  },
+  "V2_BABILONG_8K": {
+   "text": "98.8",
+   "source": "results/long-v2.summary.json",
+   "how": "compare.metrics('v2')['babilong-8k']"
+  },
+  "V2_BABILONG_16K": {
+   "text": "98.4",
+   "source": "results/long-v2.summary.json",
+   "how": "compare.metrics('v2')['babilong-16k']"
+  },
+  "V2_C_BABILONG_16K": {
+   "text": "99.2",
+   "source": "results/longc-v2.summary.json",
+   "how": "compare.metrics('v2')['c_babilong-16k']"
+  },
+  "V2_C_BABILONG_32K": {
+   "text": "99.6",
+   "source": "results/longc-v2.summary.json",
+   "how": "compare.metrics('v2')['c_babilong-32k']"
+  },
+  "V2_QUALITY": {
+   "text": "80.3",
+   "source": "results/long-v2.summary.json",
+   "how": "compare.metrics('v2')['quality']"
+  },
+  "V2_C_QUALITY": {
+   "text": "80.3",
+   "source": "results/longc-v2.summary.json",
+   "how": "compare.metrics('v2')['c_quality']"
+  },
+  "V2_AUC_AGENT_VERIFY": {
+   "text": "0.725",
+   "source": "logs/route-ht-v2.report",
+   "how": "compare.metrics('v2')['auc_agent_verify']"
+  },
+  "V2_AUC_AGENT_ESCALATE": {
+   "text": "0.575",
+   "source": "logs/route-ht-v2.report",
+   "how": "compare.metrics('v2')['auc_agent_escalate']"
+  },
+  "V2_AUC_ATLAS_VERIFY": {
+   "text": "0.631",
+   "source": "logs/route-ht-v2.report",
+   "how": "compare.metrics('v2')['auc_atlas_verify']"
+  },
+  "V2_INJECT": {
+   "text": "4.93",
+   "source": "results/robust-v2/inject.jsonl",
+   "how": "compare.metrics('v2')['inject']"
+  },
+  "V2_DI_INDEX": {
+   "text": "53.9",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite)",
+   "how": "compare.metrics('v2')['di_index']"
+  },
+  "V2_DI_TOOLS": {
+   "text": "80.2",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite)",
+   "how": "compare.metrics('v2')['di_tools']"
+  },
+  "V2_DI_RETRIEVAL": {
+   "text": "58.0",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite)",
+   "how": "compare.metrics('v2')['di_retrieval']"
+  },
+  "V2_DI_LANGUAGE": {
+   "text": "56.9",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite)",
+   "how": "compare.metrics('v2')['di_language']"
+  },
+  "V2_DI_ARTS": {
+   "text": "37.8",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite)",
+   "how": "compare.metrics('v2')['di_arts']"
+  },
+  "V2_DI_KNOWLEDGE": {
+   "text": "35.3",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite)",
+   "how": "compare.metrics('v2')['di_knowledge']"
+  },
+  "V2_SAF_AEGIS_PROMPT": {
+   "text": "87.4",
+   "source": "guard_rerank/results/student-base-v2-safety.score.txt",
+   "how": "compare.metrics('v2')['saf_aegis_prompt']"
+  },
+  "V2_SAF_AEGIS_RESPONSE": {
+   "text": "83.0",
+   "source": "guard_rerank/results/student-base-v2-safety.score.txt",
+   "how": "compare.metrics('v2')['saf_aegis_response']"
+  },
+  "V2_SAF_TOXICCHAT": {
+   "text": "73.5",
+   "source": "guard_rerank/results/student-base-v2-safety.score.txt",
+   "how": "compare.metrics('v2')['saf_toxicchat']"
+  },
+  "V2_NDCG10": {
+   "text": "53.1",
+   "source": "results/extra-v2.txt",
+   "how": "compare.metrics('v2')['ndcg10']"
+  },
+  "V2_JUDGE_TOOL": {
+   "text": "0.981",
+   "source": "logs/judge-v2.out",
+   "how": "compare.metrics('v2')['judge_tool']"
+  },
+  "V2_JUDGE_TRAJ": {
+   "text": "0.947",
+   "source": "logs/judge-v2.out",
+   "how": "compare.metrics('v2')['judge_traj']"
+  },
+  "N_V2_BABILONG_16K": {
+   "text": "250",
+   "source": "results/long-v2.summary.json",
+   "how": "[\"babilong-16k\"][\"n\"]"
+  },
+  "N_V2_BABILONG_32K": {
+   "text": "250",
+   "source": "results/long-v2.summary.json",
+   "how": "[\"babilong-32k\"][\"n\"]"
+  },
+  "N_V2_BABILONG_4K": {
+   "text": "250",
+   "source": "results/long-v2.summary.json",
+   "how": "[\"babilong-4k\"][\"n\"]"
+  },
+  "N_V2_BABILONG_8K": {
+   "text": "250",
+   "source": "results/long-v2.summary.json",
+   "how": "[\"babilong-8k\"][\"n\"]"
+  },
+  "N_V2_QUALITY": {
+   "text": "300",
+   "source": "results/long-v2.summary.json",
+   "how": "[\"quality\"][\"n\"]"
+  },
+  "N_V2_C_BABILONG_16K": {
+   "text": "250",
+   "source": "results/longc-v2.summary.json",
+   "how": "[\"babilong-16k\"][\"n\"]"
+  },
+  "N_V2_C_BABILONG_32K": {
+   "text": "250",
+   "source": "results/longc-v2.summary.json",
+   "how": "[\"babilong-32k\"][\"n\"]"
+  },
+  "N_V2_C_BABILONG_4K": {
+   "text": "250",
+   "source": "results/longc-v2.summary.json",
+   "how": "[\"babilong-4k\"][\"n\"]"
+  },
+  "N_V2_C_BABILONG_8K": {
+   "text": "250",
+   "source": "results/longc-v2.summary.json",
+   "how": "[\"babilong-8k\"][\"n\"]"
+  },
+  "N_V2_C_QUALITY": {
+   "text": "300",
+   "source": "results/longc-v2.summary.json",
+   "how": "[\"quality\"][\"n\"]"
+  },
+  "N_JEVBENCH": {
+   "text": "231",
+   "source": "logs/f-v2.eval.done (or logs/neval-f-v2.log)",
+   "how": "compare.metrics()['jevbench_n']"
+  },
+  "N_EVAL": {
+   "text": "578",
+   "source": "results/m-f-v2-eval/predictions.jsonl minus lineage/eval_decontam.txt",
+   "how": "compare.metrics()['eval_n']"
+  },
+  "N_AUDIT": {
+   "text": "678",
+   "source": "results/m-f-v2-audit/predictions.jsonl minus lineage/eval_decontam.txt",
+   "how": "compare.metrics()['audit_n']"
+  },
+  "N_TIER_HARD": {
+   "text": "111",
+   "source": "results/m-f-v2-jevbench/predictions.jsonl",
+   "how": "compare.metrics()['tier:hard_n']"
+  },
+  "TABLE_RESULTS": {
+   "text": "| benchmark | Nemotron Deciffusion 8B |\n|---|---|\n| JevBench public, top-1 | **210/231** |\n| JevBench public, hard tier | **90/111** |\n| Native eval split (decontaminated) | **528/578** |\n| Native audit split | **618/678** |\n| BABILong 4k, native | **99.2** |\n| BABILong 8k, native | **98.8** |\n| BABILong 16k, native | **98.4** |\n| BABILong 16k, production compaction | **99.2** |\n| BABILong 32k, production compaction | **99.6** |\n| QuALITY, native | **80.3** |\n| QuALITY, production path | **80.3** |\n| Agent-run verify AUC (held-out coding-agent runs) | **0.725** |\n| Continue-vs-escalate AUC (held-out coding-agent runs) | **0.575** |\n| SWE-Atlas verify AUC (unseen harness) | **0.631** |\n| Prompt injection: injected answer chosen, % (lower is better) | **4.93** |\n| Decision Index 0.3 public index (full public suite) | **53.9** |\n| Decision Index 0.3: Tools & Automation | **80.2** |\n| Decision Index 0.3: Retrieval & Classification | **58.0** |\n| Decision Index 0.3: Language Understanding | **56.9** |\n| Decision Index 0.3: Arts & Human Taste | **37.8** |\n| Decision Index 0.3: Knowledge & Reasoning | **35.3** |\n| Aegis 2.0 prompt safety F1 | **87.4** |\n| Aegis 2.0 response safety F1 | **83.0** |\n| ToxicChat F1 | **73.5** |\n| BEIR rerank nDCG@10 (FiQA, NFCorpus, SciFact) | **53.1** |\n| Policy judge AUC: tool calls | **0.981** |\n| Policy judge AUC: trajectories | **0.947** |",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite); guard_rerank/results/student-base-v2-safety.score.txt; logs/f-v2.eval.done (or logs/neval-f-v2.log); logs/judge-v2.out; logs/route-ht-v2.report; results/extra-v2.txt; results/long-v2.summary.json; results/longc-v2.summary.json; results/m-f-v2-audit/predictions.jsonl minus lineage/eval_decontam.txt; results/m-f-v2-eval/predictions.jsonl minus lineage/eval_decontam.txt; results/m-f-v2-jevbench/predictions.jsonl; results/robust-v2/inject.jsonl",
+   "how": "compare.metrics() for each tag; rows with no result for any tag are dropped"
+  },
+  "TABLE_RESULTS_SHORT": {
+   "text": "| benchmark | Nemotron Deciffusion 8B |\n|---|---|\n| JevBench public, top-1 | **210/231** |\n| JevBench public, hard tier | **90/111** |\n| BABILong 32k, production compaction | **99.6** |\n| QuALITY, native | **80.3** |\n| Agent-run verify AUC (held-out coding-agent runs) | **0.725** |\n| Prompt injection: injected answer chosen, % (lower is better) | **4.93** |\n| Decision Index 0.3 public index (full public suite) | **53.9** |\n| Aegis 2.0 prompt safety F1 | **87.4** |\n| Aegis 2.0 response safety F1 | **83.0** |\n| BEIR rerank nDCG@10 (FiQA, NFCorpus, SciFact) | **53.1** |",
+   "source": "--di-scores (Decision Index kit scores.json, full public 0.3 suite); guard_rerank/results/student-base-v2-safety.score.txt; logs/f-v2.eval.done (or logs/neval-f-v2.log); logs/judge-v2.out; logs/route-ht-v2.report; results/extra-v2.txt; results/long-v2.summary.json; results/longc-v2.summary.json; results/m-f-v2-audit/predictions.jsonl minus lineage/eval_decontam.txt; results/m-f-v2-eval/predictions.jsonl minus lineage/eval_decontam.txt; results/m-f-v2-jevbench/predictions.jsonl; results/robust-v2/inject.jsonl",
+   "how": "compare.metrics() for each tag; rows with no result for any tag are dropped"
+  },
+  "TABLE_AADI": {
+   "text": "| model | AA index (published) | HLE-MC acc | When2Call acc | WildGuardTest F1 | mean of the 3 open components | ECE HLE-MC | ECE When2Call | ECE WildGuardTest |\n|---|---|---|---|---|---|---|---|---|\n| **Nemotron Deciffusion 8B v2** | \u2013 | 11.7 | 94.2 | 91.1 | 65.7 | 0.314 | 0.030 | 0.017 |\n| Jev 1.13 | 57.5 | 20.9 | 80.7 | 93.6 | 65.0 | 0.402 | 0.053 | 0.048 |\n| GLiDE | 53.9 | 10.5 | 83.7 | 95.1 | 63.1 | 0.381 | 0.012 | 0.012 |\n| Microsoft-Decision-1 | 53.8 | 10.9 | 81.9 | 88.2 | 60.3 | 0.468 | 0.103 | 0.028 |\n| Claude Haiku 5.5 (Low) | 60.6 | 23.6 | 72.6 | 92.6 | 62.9 | \u2013 | \u2013 | \u2013 |",
+   "source": "ov/aadi/v2.json; evals/aa_di_v1/aa_source/aa_di_v1_leaderboard.json",
+   "how": "metrics block of ov/aadi/<tag>.json; AA rows: scores + calibrationBins of the leaderboard JSON"
+  },
+  "V2_AA_HLE": {
+   "text": "11.7",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_hle_mc']"
+  },
+  "V2_AA_W2C": {
+   "text": "94.2",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_when2call']"
+  },
+  "V2_AA_WGT": {
+   "text": "91.1",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_wildguard']"
+  },
+  "V2_AA_OPEN": {
+   "text": "65.7",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_di_open']"
+  },
+  "V2_AA_ECE_HLE": {
+   "text": "0.314",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_ece_hle_mc']"
+  },
+  "V2_AA_ECE_W2C": {
+   "text": "0.030",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_ece_when2call']"
+  },
+  "V2_AA_ECE_WGT": {
+   "text": "0.017",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"metrics\"]['aa_ece_wildguardtest']"
+  },
+  "N_AA_HLE": {
+   "text": "513",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"components\"]['hle_mc'][\"n\"]"
+  },
+  "N_AA_W2C": {
+   "text": "3,423",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"components\"]['when2call'][\"n\"]"
+  },
+  "N_AA_WGT": {
+   "text": "880",
+   "source": "ov/aadi/v2.json",
+   "how": "[\"components\"]['wildguardtest'][\"n\"]"
+  },
+  "AA_BEST_HLE": {
+   "text": "23.6 (Claude Haiku 5.5 (Low))",
+   "source": "evals/aa_di_v1/aa_source/aa_di_v1_leaderboard.json",
+   "how": "max over the four reference models"
+  },
+  "AA_BEST_W2C": {
+   "text": "83.7 (GLiDE)",
+   "source": "evals/aa_di_v1/aa_source/aa_di_v1_leaderboard.json",
+   "how": "max over the four reference models"
+  },
+  "AA_BEST_WGT": {
+   "text": "95.1 (GLiDE)",
+   "source": "evals/aa_di_v1/aa_source/aa_di_v1_leaderboard.json",
+   "how": "max over the four reference models"
+  },
+  "AA_SNAPSHOT_DATE": {
+   "text": "2026-10-13",
+   "source": "evals/aa_di_v1/aa_source/aa_di_v1_leaderboard.json",
+   "how": "file modification date of the leaderboard snapshot"
+  },
+  "CKPT_SHA256": {
+   "text": "722396e8b46e34ba27db49584fea3b2be6c1797f62be58029c6ff142db072bc2",
+   "source": "release/v2/SHA256SUMS-v2",
+   "how": "sha256 of model.safetensors"
+  },
+  "TABLE_LATENCY": {
+   "text": "| GPU | precision | prompt tokens | concurrency | p50 ms | p95 ms | decisions/s | measurement |\n|---|---|---|---|---|---|---|---|\n| L40S | FP8 (dynamic) | 362 | 1 | 29.8 | 93.5 | 24.05 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| L40S | FP8 (dynamic) | 362 | 16 | 539.1 | 893.1 | 28.56 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| L40S | FP8 (dynamic) | 850 | 1 | 59.5 | 129.4 | 14.19 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| L40S | FP8 (dynamic) | 850 | 16 | 984.3 | 1413.5 | 15.2 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| GB200 | FP8 (dynamic) | 362 | 1 | 24.9 | 29.0 | 28.75 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| GB200 | FP8 (dynamic) | 362 | 16 | 91.2 | 142.5 | 166.8 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| GB200 | FP8 (dynamic) | 850 | 1 | 26.1 | 31.3 | 37.01 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| GB200 | FP8 (dynamic) | 850 | 16 | 168.3 | 266.8 | 85.95 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| GB200 | BF16 | 362 | 1 | 25.8 | 33.7 | 26.86 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| GB200 | BF16 | 362 | 16 | 142.2 | 243.2 | 105.32 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| GB200 | BF16 | 850 | 1 | 26.7 | 41.2 | 33.6 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| GB200 | BF16 | 850 | 16 | 265.6 | 389.1 | 56.83 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| GB200 | NVFP4 | 362 | 1 | 24.1 | 28.7 | 29.0 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| GB200 | NVFP4 | 362 | 16 | 73.1 | 143.1 | 201.1 | vllm serve + adapter, AA DI items n=300; hle_mc (1 decision per task) |\n| GB200 | NVFP4 | 850 | 1 | 25.1 | 45.7 | 35.53 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |\n| GB200 | NVFP4 | 850 | 16 | 137.4 | 319.8 | 95.33 | vllm serve + adapter, AA DI items n=300; when2call (1 decision per task) |",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "rows[] with fields gpu, precision, prompt_tokens, concurrency, p50_ms, p95_ms, decisions_per_s, source"
+  },
+  "TABLE_LATENCY_SITE": {
+   "text": "| GPU | precision | prompt tokens | concurrency | p50 ms | p95 ms | decisions/s |\n|---|---|---|---|---|---|---|\n| NVIDIA L40S | FP8 (dynamic) | ~362 | 1 | 29.8 | 93.5 | 24.05 |\n| NVIDIA L40S | FP8 (dynamic) | ~362 | 16 | 539.1 | 893.1 | 28.56 |\n| NVIDIA L40S | FP8 (dynamic) | ~850 | 1 | 59.5 | 129.4 | 14.19 |\n| NVIDIA L40S | FP8 (dynamic) | ~850 | 16 | 984.3 | 1413.5 | 15.2 |\n| NVIDIA GB200 | FP8 (dynamic) | ~362 | 1 | 24.9 | 29.0 | 28.75 |\n| NVIDIA GB200 | FP8 (dynamic) | ~362 | 16 | 91.2 | 142.5 | 166.8 |\n| NVIDIA GB200 | FP8 (dynamic) | ~850 | 1 | 26.1 | 31.3 | 37.01 |\n| NVIDIA GB200 | FP8 (dynamic) | ~850 | 16 | 168.3 | 266.8 | 85.95 |\n| NVIDIA GB200 | BF16 | ~362 | 1 | 25.8 | 33.7 | 26.86 |\n| NVIDIA GB200 | BF16 | ~362 | 16 | 142.2 | 243.2 | 105.32 |\n| NVIDIA GB200 | BF16 | ~850 | 1 | 26.7 | 41.2 | 33.6 |\n| NVIDIA GB200 | BF16 | ~850 | 16 | 265.6 | 389.1 | 56.83 |\n| NVIDIA GB200 | NVFP4 | ~362 | 1 | 24.1 | 28.7 | 29.0 |\n| NVIDIA GB200 | NVFP4 | ~362 | 16 | 73.1 | 143.1 | 201.1 |\n| NVIDIA GB200 | NVFP4 | ~850 | 1 | 25.1 | 45.7 | 35.53 |\n| NVIDIA GB200 | NVFP4 | ~850 | 16 | 137.4 | 319.8 | 95.33 |",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "rows[] without the measurement column (launch site)"
+  },
+  "LAT_MAX_DPS": {
+   "text": "201.1",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with the highest decisions_per_s"
+  },
+  "LAT_MAX_DPS_GPU": {
+   "text": "GB200",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with the highest decisions_per_s"
+  },
+  "LAT_MAX_DPS_PRECISION": {
+   "text": "NVFP4",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with the highest decisions_per_s"
+  },
+  "LAT_MAX_DPS_CONC": {
+   "text": "16",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with the highest decisions_per_s"
+  },
+  "LAT_MAX_DPS_TOKENS": {
+   "text": "362",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with the highest decisions_per_s"
+  },
+  "LAT_MIN_P50": {
+   "text": "24.1",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "concurrency-1 row with the lowest p50_ms"
+  },
+  "LAT_MIN_P50_GPU": {
+   "text": "GB200",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "concurrency-1 row with the lowest p50_ms"
+  },
+  "LAT_MIN_P50_PRECISION": {
+   "text": "NVFP4",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "concurrency-1 row with the lowest p50_ms"
+  },
+  "LAT_MIN_P50_TOKENS": {
+   "text": "362",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "concurrency-1 row with the lowest p50_ms"
+  },
+  "LAT_HL_P50": {
+   "text": "24.1",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true, field for LAT_HL_P50"
+  },
+  "LAT_HL_P95": {
+   "text": "28.7",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true, field for LAT_HL_P95"
+  },
+  "LAT_HL_GPU": {
+   "text": "GB200",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true, field for LAT_HL_GPU"
+  },
+  "LAT_HL_PRECISION": {
+   "text": "NVFP4",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true, field for LAT_HL_PRECISION"
+  },
+  "LAT_HL_TOKENS": {
+   "text": "362",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true, field for LAT_HL_TOKENS"
+  },
+  "LAT_HL_DPS": {
+   "text": "29.0",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true, field for LAT_HL_DPS"
+  },
+  "LATENCY_HEADLINE": {
+   "text": "24.1 ms p50 on one GB200 (NVFP4, ~362-token prompts)",
+   "source": "serving measurements (latency_v2_public.json)",
+   "how": "row with \"headline\": true"
+  },
+  "TAG": {
+   "text": "v2",
+   "source": "command line",
+   "how": "--tag"
+  },
+  "FILLED_AT": {
+   "text": "2026-10-14 22:17",
+   "source": "clock",
+   "how": "time of the fill run"
+  }
+ },
+ "unfilled": {}
+}

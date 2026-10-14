@@ -1,0 +1,31 @@
+{
+  "model": "nemotron-deciffusion-8b",
+  "state": {
+    "ticket": "Customer was charged twice for order 1182 and wants the duplicate refunded."
+  },
+  "questions": {
+    "route": {
+      "type": "choice",
+      "instructions": "Which team should handle this ticket?",
+      "criteria": {
+        "billing": "Payments, refunds and invoices",
+        "shipping": "Delivery problems",
+        "tech": "Product bugs and outages"
+      }
+    },
+    "urgent": {
+      "type": "noul",
+      "instructions": "Does this need a reply within one hour?"
+    },
+    "priority": {
+      "type": "score",
+      "instructions": "How urgent is this ticket?",
+      "criteria": [
+        "Low: handle in the normal queue",
+        "Medium: reply today",
+        "High: reply within the hour",
+        "Critical: escalate now"
+      ]
+    }
+  }
+}

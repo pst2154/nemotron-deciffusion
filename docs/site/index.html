@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nemotron Deciffusion 8B v2 · Big-model decisions. One GPU. One pass.</title>
+<meta name="description" content="Nemotron Deciffusion 8B v2: typed decisions (choice, yes/no, score) in a single bidirectional forward pass. Built on NVIDIA Nemotron-Labs-Diffusion-8B, trained on a fully traced, commercially licensed data lineage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2376B900'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="in">
+    <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>Nemotron Deciffusion 8B</a>
+    <nav aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#results">Results</a>
+      <a href="#get-started">Get started</a>
+      <a href="playground/">Playground</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="in">
+    <p class="eyebrow">Open model &middot; Typed decisions</p>
+    <h1>Nemotron Deciffusion 8B v2</h1>
+    <p class="tagline">Big-model decisions. One GPU. One pass.</p>
+    <p class="lede"><b>Typed decisions in one forward pass.</b> Give the model a JSON state and typed questions. It returns a probability for every option in a single bidirectional pass on one NVIDIA GPU: no generated text, no reasoning tokens.</p>
+    <div class="stats">
+      <div class="stat"><div class="num">24.1<small>ms</small></div><div class="lbl">median per decision on one NVIDIA GB200 (NVFP4, ~362-token prompts, production container)</div></div>
+      <div class="stat"><div class="num">210/231</div><div class="lbl">JevBench public items, top-1</div></div>
+      <div class="stat"><div class="num">99.6<small>%</small></div><div class="lbl">BABILong at 32k tokens through the production path</div></div>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="#get-started">Get started</a>
+      <a class="btn ghost" href="playground/">Try the Decision Playground</a>
+      <a class="btn ghost" href="#results">See the numbers</a>
+    </div>
+    <p class="meta">Built on NVIDIA Nemotron-Labs-Diffusion-8B &middot; NVIDIA Nemotron Open Model License &middot; released 2026-10-14</p>
+  </div>
+</section>
+
+<div class="layout">
+  <aside class="toc" aria-label="Table of contents">
+    <h2>On this page</h2>
+    <ol>
+      <li><a href="#tldr">TL;DR</a></li>
+      <li><a href="#efficiency">Efficiency</a></li>
+      <li><a href="#field">v2 vs the field</a></li>
+      <li><a href="#inside">What's inside</a></li>
+      <li><a href="#why">Why single-pass decisions</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#results">Results</a>
+        <ol>
+          <li><a href="#decisions">Decision benchmarks</a></li>
+          <li><a href="#long-context">Long context</a></li>
+          <li><a href="#tools">Tools &amp; retrieval</a></li>
+          <li><a href="#safety">Safety &amp; robustness</a></li>
+          <li><a href="#agents">Agents &amp; judging</a></li>
+          <li><a href="#latency">Latency</a></li>
+          <li><a href="#nvfp4">NVFP4 for Blackwell</a></li>
+          <li><a href="#method">Methodology</a></li>
+        </ol>
+      </li>
+      <li><a href="#nvidia">Built on NVIDIA</a></li>
+      <li><a href="#use-cases">Use cases</a></li>
+      <li><a href="#get-started">Get started</a></li>
+      <li><a href="#license">License &amp; acknowledgements</a></li>
+    </ol>
+  </aside>
+
+  <article>
+
+<!-- ===================================================================== TL;DR -->
+<section id="tldr">
+  <div class="tldr">
+    <p><strong>TL;DR.</strong> Nemotron Deciffusion 8B is an open model for typed decisions such as routing, verification, tool selection, policy checks and judging. Built on NVIDIA Nemotron-Labs-Diffusion-8B, it returns a probability for every option of a <code>choice</code>, yes/no (<code>noul</code>) or <code>score</code> question in <strong>one bidirectional forward pass</strong>, without generating any tokens. v2 is our first public release; earlier versions were internal.</p>
+    <ul>
+      <li><strong>Fast.</strong> 24.1 ms median per decision on one NVIDIA GB200 (NVFP4), end to end through the production container. Up to 201.1 decisions per second on one GB200.</li>
+      <li><strong>Accurate.</strong> JevBench public top-1 210/231. On the AA Decision Index open components: When2Call 94.2 and WildGuardTest F1 91.1.</li>
+      <li><strong>Long context.</strong> BABILong 99.6 at 32k tokens through the production path, and QuALITY 80.3 on full articles.</li>
+      <li><strong>Fully traced data.</strong> Every training row is checked for license, provenance and overlap with our evaluation sets, and every source is licensed for commercial training.</li>
+      <li><strong>One container.</strong> <code>vllm serve</code> with a thin SystemOne adapter: NVFP4 in production on Blackwell data-center GPUs, FP8 on other GPUs.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="efficiency">
+  <div class="band">
+    <div class="label">Animation</div>
+    <figure>
+      <picture>
+        <source srcset="assets/gifs/latency_race.png" media="(prefers-reduced-motion: reduce)">
+        <img src="assets/gifs/latency_race.gif" width="1344" height="756" loading="lazy"
+             alt="Animated latency race: p50 per decision at concurrency 1 on NVIDIA GB200 (NVFP4, FP8 and BF16) and L40S (FP8), for short and longer prompts.">
+      </picture>
+      <figcaption><b>Efficiency.</b> One decision end to end through the production container (<code>vllm serve</code> + adapter), p50 at concurrency 1. Full table in <a href="#latency">Latency</a>. <a href="assets/gifs/latency_race.png">Static frame</a>.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================================================================== FIELD -->
+<section id="field">
+  <h2>v2 vs the field</h2>
+  <p>Artificial Analysis&rsquo;s Decision Index combines four benchmarks. We ran the three public ones with AA&rsquo;s published methodology: HLE-MC (513 text-only multiple-choice questions), When2Call (3,423 test tasks) and WildGuardTest (880 items, three yes/no questions each). The reference rows are AA&rsquo;s published per-component scores (leaderboard snapshot 2026-10-13).</p>
+  <div class="table-wrap"><table>
+<thead><tr><th>model</th><th>AA index (published)</th><th>HLE-MC acc</th><th>When2Call acc</th><th>WildGuardTest F1</th><th>mean of the 3 open components</th><th>ECE HLE-MC</th><th>ECE When2Call</th><th>ECE WildGuardTest</th></tr></thead><tbody>
+<tr class="ours"><td><strong>Nemotron Deciffusion 8B v2</strong></td><td>–</td><td>11.7</td><td>94.2</td><td>91.1</td><td>65.7</td><td>0.314</td><td>0.030</td><td>0.017</td></tr>
+<tr><td>Jev 1.13</td><td>57.5</td><td>20.9</td><td>80.7</td><td>93.6</td><td>65.0</td><td>0.402</td><td>0.053</td><td>0.048</td></tr>
+<tr><td>GLiDE</td><td>53.9</td><td>10.5</td><td>83.7</td><td>95.1</td><td>63.1</td><td>0.381</td><td>0.012</td><td>0.012</td></tr>
+<tr><td>Microsoft-Decision-1</td><td>53.8</td><td>10.9</td><td>81.9</td><td>88.2</td><td>60.3</td><td>0.468</td><td>0.103</td><td>0.028</td></tr>
+<tr><td>Claude Haiku 5.5 (Low)</td><td>60.6</td><td>23.6</td><td>72.6</td><td>92.6</td><td>62.9</td><td>–</td><td>–</td><td>–</td></tr>
+</tbody></table></div>
+  <ul>
+    <li><strong>When2Call:</strong> 94.2, the highest in the table. The When2Call train split (CC-BY-4.0) is part of our training data.</li>
+    <li><strong>WildGuardTest:</strong> F1 91.1 with ECE 0.017.</li>
+    <li><strong>AA index:</strong> the fourth component, AA-Omniscience-Decision, is private; the AA index column lists AA&rsquo;s published values.</li>
+    <li><strong>Calibration</strong> follows AA&rsquo;s method: bins of 0.1, only bins with at least 20 answers, answer-weighted mean of |accuracy &minus; confidence|.</li>
+  </ul>
+  <p>To reproduce these components and the calibration, follow <a href="https://github.com/pst2154/nemotron-deciffusion/blob/main/evaluation/README.md#aa-decision-index-open-components">evaluation/README.md</a>.</p>
+</section>
+
+<!-- ===================================================================== INSIDE -->
+<section id="inside">
+  <h2>What's inside</h2>
+  <p>Nemotron Deciffusion 8B v2 is trained from the base model on a line of data mixes built for commercial use.</p>
+  <div class="cards">
+    <div class="card"><h4>Clean, fully traced data</h4><p>Every row passes a row-level check: its source is licensed for commercial training, every model that generated, labelled or soft-targeted it is cleared for that use, and it does not overlap a protected evaluation set.</p></div>
+    <div class="card"><h4>Multi-hop reasoning</h4><p>Openly licensed multi-hop datasets (MuSiQue, 2WikiMultihopQA, HotpotQA, WikiHop, ShARC, MultiHiertt). Gold answers come from the datasets, and distractor options are checked blind by a second open model.</p></div>
+    <div class="card"><h4>Long documents</h4><p>The QuALITY train split with its human gold labels, BABILong train-generator rows, long-document decisions, and rows rendered through the same compactor the server uses, so the model trains on what it sees in production above 8,192 tokens.</p></div>
+    <div class="card"><h4>Human-labelled safety</h4><p>Safety rows from Aegis 2.0 (Nemotron Content Safety Dataset V2) use only the dataset&rsquo;s human labels from its train split.</p></div>
+    <div class="card"><h4>Hard expert multiple choice</h4><p>Science, medical and math questions from NVIDIA OpenScience, Nemotron-RL knowledge MCQA, Nemotron-Science, MedMCQA and AQuA-RAT train splits, kept only when open-model teachers agree with the gold answer.</p></div>
+  </div>
+  <ul>
+    <li><strong>Decontaminated evaluation.</strong> Evaluation items that share text with any training row are removed from scoring, and every expert multiple-choice question is checked against HLE-MC, GPQA, MMLU-Pro and SuperGPQA by exact hash and 13-gram overlap.</li>
+  </ul>
+</section>
+
+<!-- ===================================================================== WHY -->
+<section id="why">
+  <h2>Why single-pass typed decisions</h2>
+  <p>Agent systems and enterprise workflows make many small decisions:</p>
+  <ul>
+    <li>which tool to call;</li>
+    <li>which queue gets a ticket;</li>
+    <li>whether a finished agent run actually solved its task;</li>
+    <li>whether a request or response is safe under a policy;</li>
+    <li>how relevant a document is to a query.</li>
+  </ul>
+  <p>These calls need three things: a <strong>fixed set of allowed answers</strong>, a <strong>probability</strong> for each, and <strong>low, predictable latency</strong>. Deciffusion treats each decision as a classification over the options the caller provides. The caller sends a JSON <code>state</code> and one or more typed questions. The model returns a probability for every option, ready to threshold, rank or abstain on, and a request costs one prefill-sized pass whatever the difficulty.</p>
+</section>
+
+<!-- ===================================================================== HOW -->
+<section id="how">
+  <h2>How it works</h2>
+  <div class="band">
+    <div class="label">Animation</div>
+    <figure>
+      <picture>
+        <source srcset="assets/gifs/one_forward_pass.png" media="(prefers-reduced-motion: reduce)">
+        <img src="assets/gifs/one_forward_pass.gif" width="1344" height="756" loading="lazy"
+             alt="Animation: a support ticket state, the question 'Which team should handle this ticket?' and options billing, shipping and tech feed one pass of the model; the mask slot lights up and probability bars grow to billing 0.91, shipping 0.06, tech 0.03.">
+      </picture>
+      <figcaption><b>One forward pass.</b> The whole prompt is scored at once and the answer is read from the <code>[MASK]</code> slot. Timer: p50 24.1 ms at ~362 tokens on one NVIDIA GB200 (NVFP4). Probabilities are an illustrative example. <a href="assets/gifs/one_forward_pass.png">Static frame</a>.</figcaption>
+    </figure>
+  </div>
+  <ul>
+    <li><strong>Base model.</strong> <a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B">nvidia/Nemotron-Labs-Diffusion-8B</a>, a diffusion language model, pre-trained to fill masked positions using context on both sides.</li>
+    <li><strong>Bidirectional attention</strong> over the whole prompt: the state, the question and every option attend to each other before the answer is read out.</li>
+    <li><strong>Masked readout over option codes.</strong> Options get single-token codes, and one mask slot reads a distribution over them:
+      <ul>
+        <li>a single choice for <code>choice</code> questions;</li>
+        <li>p(true) for <code>noul</code>;</li>
+        <li>a distribution over levels for <code>score</code>.</li>
+      </ul>
+    </li>
+    <li><strong>Training.</strong> Full fine-tuning with soft-target cross-entropy on the exact serving graph.</li>
+    <li><strong>Requests.</strong> Up to 512 questions per request and 501 options per question.</li>
+  </ul>
+
+  <h3 id="compaction">Long prompts: compaction</h3>
+  <p>Prompts of 8,192 tokens or less are scored as is. Longer prompts are reduced to the 8,192 most relevant tokens before the single pass:</p>
+  <ul>
+    <li>prose keeps its most question-relevant sentences, ranked with BM25 and kept in the original order;</li>
+    <li>agent traces keep their head and tail.</li>
+  </ul>
+  <p>No second model and no generation are involved. The code is in <a href="https://github.com/pst2154/nemotron-deciffusion/blob/main/serving/app/compaction.py"><code>serving/app/compaction.py</code></a>.</p>
+</section>
+
+<!-- ===================================================================== RESULTS -->
+<section id="results">
+  <h2>Results</h2>
+  <p>All numbers are BF16 except the Decision Index (FP8 container), scored on fixed items. Evaluation items that overlap training data are removed from scoring.</p>
+
+  <h3 id="decisions">Decision benchmarks</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>benchmark</th><th>Nemotron Deciffusion 8B v2</th></tr></thead>
+      <tbody>
+        <tr><td>JevBench public, top-1</td><td class="ours-col"><b>210/231</b></td></tr>
+        <tr><td>JevBench public, hard tier</td><td class="ours-col">90/111</td></tr>
+        <tr><td>Native eval split (decontaminated)</td><td class="ours-col">528/578</td></tr>
+        <tr><td>Native audit split</td><td class="ours-col">618/678</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">JevBench: the 231 public items. The native eval and audit splits are scored without items that overlap training data.</p>
+
+  <h3 id="long-context">Long context</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>BABILong 4k</th><th>8k</th><th>16k</th><th>32k</th><th>QuALITY</th></tr></thead>
+      <tbody>
+        <tr class="ours"><td>Production path<br><span style="font-weight:400;font-size:12px;color:#555">default, shipped container</span></td><td>99.2</td><td>98.8</td><td><b>99.2</b></td><td><b>99.6</b></td><td><b>80.3</b></td></tr>
+        <tr><td>Native (no compaction)</td><td>99.2</td><td>98.8</td><td>98.4</td><td class="na">&ndash;</td><td>80.3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">BABILong: 250 items per length. QuALITY: 300 validation questions with full articles. Prompts of 8,192 tokens or less are never compacted, so 4k and 8k are the same on both paths.</p>
+
+  <div class="band">
+    <div class="label">Animations</div>
+    <div class="band-grid">
+      <figure>
+        <picture>
+          <source srcset="assets/gifs/compaction.png" media="(prefers-reduced-motion: reduce)">
+          <img src="assets/gifs/compaction.gif" width="1344" height="756" loading="lazy"
+               alt="Animation of compaction: a long document of many sentence lines is scanned, the sentences relevant to the question light up green, the rest fade, and the relevant ones collect into an 8,192-token prompt.">
+        </picture>
+        <figcaption><b>Compaction.</b> A 32k-token prompt in, the 8,192 most question-relevant tokens out. Production path: BABILong 32k 99.6%, QuALITY 80.3%. Document layout is illustrative. <a href="assets/gifs/compaction.png">Static frame</a>.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="assets/gifs/accuracy_vs_context.png" media="(prefers-reduced-motion: reduce)">
+          <img src="assets/gifs/accuracy_vs_context.gif" width="1344" height="756" loading="lazy"
+               alt="Animated line chart of BABILong accuracy from 4k to 32k tokens: the production path and native scoring.">
+        </picture>
+        <figcaption><b>Accuracy vs context length.</b> Production path in green; dashed: native. <a href="assets/gifs/accuracy_vs_context.png">Static frame</a>.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <h3 id="tools">Tools &amp; retrieval</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>benchmark</th><th>Nemotron Deciffusion 8B v2</th></tr></thead>
+      <tbody>
+        <tr class="total"><td>Decision Index 0.3 public index (full public suite)</td><td class="ours-col"><b>53.9</b></td></tr>
+        <tr><td>Decision Index 0.3: Tools &amp; Automation</td><td class="ours-col">80.2</td></tr>
+        <tr><td>Decision Index 0.3: Retrieval &amp; Classification</td><td class="ours-col">58.0</td></tr>
+        <tr><td>Decision Index 0.3: Language Understanding</td><td class="ours-col">56.9</td></tr>
+        <tr><td>Decision Index 0.3: Arts &amp; Human Taste</td><td class="ours-col">37.8</td></tr>
+        <tr><td>Decision Index 0.3: Knowledge &amp; Reasoning</td><td class="ours-col">35.3</td></tr>
+        <tr><td>BEIR rerank nDCG@10 (FiQA, NFCorpus, SciFact)</td><td class="ours-col">53.1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">Decision Index 0.3: the full public suite (37 benchmarks in five areas) run with the official Decision Index kit through the released container (FP8). Chance-corrected: 0 is random guessing, 100 is perfect.</p>
+
+  <h3 id="safety">Safety &amp; robustness</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>benchmark</th><th>Nemotron Deciffusion 8B v2</th></tr></thead>
+      <tbody>
+        <tr><td>Aegis 2.0 prompt safety F1</td><td class="ours-col">87.4</td></tr>
+        <tr><td>Aegis 2.0 response safety F1</td><td class="ours-col">83.0</td></tr>
+        <tr><td>ToxicChat F1</td><td class="ours-col">73.5</td></tr>
+        <tr><td>WildGuardTest F1 (AA method)</td><td class="ours-col">91.1</td></tr>
+        <tr><td>Prompt injection: injected answer chosen, % (lower is better)</td><td class="ours-col">4.93</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">Prompt injection: the share of decisions where an instruction planted in the state (&ldquo;answer X&rdquo;) makes the model pick X.</p>
+
+  <h3 id="agents">Agents &amp; judging</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>benchmark</th><th>Nemotron Deciffusion 8B v2</th></tr></thead>
+      <tbody>
+        <tr><td>Policy judge AUC: tool calls</td><td class="ours-col"><b>0.981</b></td></tr>
+        <tr><td>Policy judge AUC: trajectories</td><td class="ours-col"><b>0.947</b></td></tr>
+        <tr><td>Agent-run verify AUC (held-out coding-agent runs)</td><td class="ours-col">0.725</td></tr>
+        <tr><td>Continue-vs-escalate AUC (held-out coding-agent runs)</td><td class="ours-col">0.575</td></tr>
+        <tr><td>SWE-Atlas verify AUC (unseen harness)</td><td class="ours-col">0.631</td></tr>
+        <tr><td>When2Call accuracy (AA method)</td><td class="ours-col"><b>94.2</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="latency">Latency</h3>
+  <p>Latency of the v2 container (<code>vllm serve</code> + adapter), one decision per request:</p>
+  <div class="table-wrap"><table>
+<thead><tr><th>GPU</th><th>precision</th><th>prompt tokens</th><th>concurrency</th><th>p50 ms</th><th>p95 ms</th><th>decisions/s</th></tr></thead><tbody>
+<tr><td>NVIDIA L40S</td><td>FP8 (dynamic)</td><td>~362</td><td>1</td><td>29.8</td><td>93.5</td><td>24.05</td></tr>
+<tr><td>NVIDIA L40S</td><td>FP8 (dynamic)</td><td>~362</td><td>16</td><td>539.1</td><td>893.1</td><td>28.56</td></tr>
+<tr><td>NVIDIA L40S</td><td>FP8 (dynamic)</td><td>~850</td><td>1</td><td>59.5</td><td>129.4</td><td>14.19</td></tr>
+<tr><td>NVIDIA L40S</td><td>FP8 (dynamic)</td><td>~850</td><td>16</td><td>984.3</td><td>1413.5</td><td>15.2</td></tr>
+<tr><td>NVIDIA GB200</td><td>FP8 (dynamic)</td><td>~362</td><td>1</td><td>24.9</td><td>29.0</td><td>28.75</td></tr>
+<tr><td>NVIDIA GB200</td><td>FP8 (dynamic)</td><td>~362</td><td>16</td><td>91.2</td><td>142.5</td><td>166.8</td></tr>
+<tr><td>NVIDIA GB200</td><td>FP8 (dynamic)</td><td>~850</td><td>1</td><td>26.1</td><td>31.3</td><td>37.01</td></tr>
+<tr><td>NVIDIA GB200</td><td>FP8 (dynamic)</td><td>~850</td><td>16</td><td>168.3</td><td>266.8</td><td>85.95</td></tr>
+<tr><td>NVIDIA GB200</td><td>BF16</td><td>~362</td><td>1</td><td>25.8</td><td>33.7</td><td>26.86</td></tr>
+<tr><td>NVIDIA GB200</td><td>BF16</td><td>~362</td><td>16</td><td>142.2</td><td>243.2</td><td>105.32</td></tr>
+<tr><td>NVIDIA GB200</td><td>BF16</td><td>~850</td><td>1</td><td>26.7</td><td>41.2</td><td>33.6</td></tr>
+<tr><td>NVIDIA GB200</td><td>BF16</td><td>~850</td><td>16</td><td>265.6</td><td>389.1</td><td>56.83</td></tr>
+<tr><td>NVIDIA GB200</td><td>NVFP4</td><td>~362</td><td>1</td><td>24.1</td><td>28.7</td><td>29.0</td></tr>
+<tr><td>NVIDIA GB200</td><td>NVFP4</td><td>~362</td><td>16</td><td>73.1</td><td>143.1</td><td>201.1</td></tr>
+<tr><td>NVIDIA GB200</td><td>NVFP4</td><td>~850</td><td>1</td><td>25.1</td><td>45.7</td><td>35.53</td></tr>
+<tr><td>NVIDIA GB200</td><td>NVFP4</td><td>~850</td><td>16</td><td>137.4</td><td>319.8</td><td>95.33</td></tr>
+</tbody></table></div>
+  <p class="table-note">Prompts: AA Decision Index items (HLE-MC at ~362 tokens, When2Call at ~850 tokens). Concurrency 16 measures throughput.</p>
+
+    <h3 id="nvfp4">NVFP4 for Blackwell</h3>
+  <p>NVFP4 build: <a href="https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4"><code>nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4</code></a>, a mixed NVFP4/FP8 checkpoint at 6.6 effective bits for Blackwell data-center GPUs. NVIDIA Model Optimizer AutoQuantize picks NVFP4 or FP8 for each layer with saturation-aware (Aumann&ndash;Shapley) sensitivity scoring, measured as the KL divergence of the decision distribution. Token embeddings and the readout head stay BF16. The recipe is by Joshua Hill (NVIDIA Model Optimizer).</p>
+  <h4>How the NVFP4 build was made</h4>
+  <p>NVIDIA Model Optimizer's AutoQuantize chooses a format for every linear-layer group independently. Each group's options are NVFP4 or FP8, and the search finds the assignment that keeps the model closest to BF16 within an effective-bits budget, here 6.6 bits per weight. The result is a mixed-precision checkpoint: NVFP4 where the model tolerates it, FP8 where it matters most.</p>
+  <p><strong>Aumann&ndash;Shapley sensitivity scoring.</strong> The standard way to rank layers is a gradient at the unquantized model. When the objective is KL divergence against the model's own outputs, that gradient is exactly zero: at the unquantized point the KL is zero and flat. Aumann&ndash;Shapley scoring instead walks the path from the BF16 output of each layer toward its quantized output, measures at points along the way (two steps here), and attributes the accumulated change in KL to each layer and format. This is path-integrated attribution in the Aumann&ndash;Shapley sense, and it needs no labels because the model is its own reference. The per-layer scores are then calibrated against a direct measurement of the damage with every layer at its most aggressive format, using a saturating damage model, so the search optimises a prediction in real units. For Deciffusion the objective is what the model actually outputs: the KL divergence of the decision distribution at the answer slot. Calibration used 640 prompts, 128 of them for sensitivity scoring.</p>
+  <p><strong>What it chose.</strong> Of the 136 linear groups (34 layers &times; attention q/k/v, attention output, MLP gate/up, MLP down), 63 run in NVFP4 and 73 in FP8. Most NVFP4 goes to the MLP, which holds most of the weights: 24 of 34 gate/up groups and 21 of 34 down projections. Attention, which is smaller and more sensitive, stays mostly FP8: 7 of 34 q/k/v groups and 11 of 34 output projections are NVFP4. Token embeddings and the readout head stay BF16.</p>
+  <figure>
+    <img src="assets/gifs/nvfp4_layer_map.png" width="1700" height="400" loading="lazy" alt="Per-layer formats chosen by AutoQuantize across the 34 decoder layers: NVFP4 in green, mostly in the MLP; FP8 in grey, mostly in attention.">
+    <figcaption><b>Per-layer formats.</b> NVFP4 (green) and FP8 (grey) for each projection group of the 34 decoder layers.</figcaption>
+  </figure>
+  <p>Aumann&ndash;Shapley scoring ships in NVIDIA Model Optimizer (<a href="https://github.com/NVIDIA/Model-Optimizer/blob/main/modelopt/torch/quantization/_auto_quantize_shapley.py"><code>_auto_quantize_shapley.py</code></a>). The method and recipe are by Joshua Hill: <a href="https://github.com/NVIDIA/Model-Optimizer/pull/2183">Aumann&ndash;Shapley scoring in AutoQuantize</a>, <a href="https://github.com/NVIDIA/Model-Optimizer/pull/2246">recipe integration</a>, and the paper <a href="https://arxiv.org/abs/2607.12266">arXiv:2607.12266</a>.</p>
+  <p>The two tables below come from their own paired run on one GB200, with BF16, FP8 and NVFP4 served the same way (<code>vllm serve</code> + adapter) on the same items. The BF16 column is that run&rsquo;s own reference, separate from the results table above.</p>
+  <p>Accuracy in the paired run. Pooled decisions cover JevBench, our eval split and our audit split:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>BF16</th><th>FP8 (dynamic)</th><th class="ours-col">NVFP4</th></tr></thead>
+      <tbody>
+        <tr><td>Decisions, pooled (1,489 items)</td><td>1,358</td><td>1,352</td><td class="ours-col"><b>1,354</b></td></tr>
+        <tr><td>JevBench public (231)</td><td>210</td><td>206</td><td class="ours-col"><b>207</b></td></tr>
+        <tr><td>QuALITY, compacted long context (300)</td><td>79.7</td><td>79.3</td><td class="ours-col"><b>78.0</b></td></tr>
+        <tr><td>BABILong 4k / 8k / 16k / 32k</td><td>99.6 / 99.2 / 99.2 / 99.6</td><td>98.8 / 98.8 / 99.2 / 99.6</td><td class="ours-col"><b>99.2 / 99.6 / 99.2 / 99.6</b></td></tr>
+        <tr><td>Aegis 2.0 prompt / response F1</td><td>87.6 / 83.0</td><td class="na">&ndash;</td><td class="ours-col"><b>87.5 / 83.1</b></td></tr>
+        <tr><td>ToxicChat F1</td><td>72.9</td><td class="na">&ndash;</td><td class="ours-col"><b>72.1</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Speed on one GB200, BF16, FP8 and NVFP4 measured in the same session (<code>vllm serve</code> + adapter, 300 AA Decision Index items per component):</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>BF16</th><th>FP8 (dynamic)</th><th class="ours-col">NVFP4</th></tr></thead>
+      <tbody>
+        <tr><td>p50 per task, 1 request (HLE-MC, ~360 tokens)</td><td>25.8 ms</td><td>24.9 ms</td><td class="ours-col"><b>24.1 ms</b></td></tr>
+        <tr><td>Tasks/s, 16 concurrent (HLE-MC)</td><td>105</td><td>167</td><td class="ours-col"><b>201</b></td></tr>
+        <tr><td>Tasks/s, 16 concurrent (When2Call, ~850 tokens)</td><td>57</td><td>86</td><td class="ours-col"><b>95</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figure>
+    <img src="assets/gifs/nvfp4_throughput.png" width="1344" height="672" loading="lazy"
+         alt="Bar chart of tasks per second at 16 concurrent requests on one NVIDIA GB200: HLE-MC BF16 105, FP8 167, NVFP4 201; When2Call BF16 57, FP8 86, NVFP4 95.">
+    <figcaption><b>NVFP4 throughput.</b> Tasks per second at 16 concurrent requests on one NVIDIA GB200.</figcaption>
+  </figure>
+  <p>On GB200, NVFP4 serves 11&ndash;21% more tasks per second than FP8 and 1.7&ndash;1.9&times; more than BF16, with comparable decision accuracy. To serve it, run the release container with <code>MODEL_ID=nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4</code>, <code>QUANTIZATION=none</code> and its own cache volume, <code>-v $HOME/.cache/deciffusion-nvfp4:/models</code>.</p>
+
+  <h3 id="method">Methodology</h3>
+  <ul>
+    <li><strong>One harness.</strong> Every number comes from the same evaluators, on the same items, with the same prompts: the native single-pass evaluator for JevBench and our eval and audit splits; the long-context runner, with and without production compaction; the official Decision Index kit for the full public 0.3 suite; and the AA methodology for the AA components.</li>
+    <li><strong>BF16</strong> weights for every evaluation except the Decision Index, which runs the released FP8 container. The container&rsquo;s FP8 default is checked against BF16 on JevBench over HTTP.</li>
+    <li><strong>Protected evaluation sets.</strong> Every training row is checked against JevBench public, the Decision Index 0.3 suite, BEIR test queries, QuALITY validation, BABILong test, RAGTruth test, Aegis 2.0 and ToxicChat test, our routing and judge held-out sets, our native eval and audit splits, and the AA component sets. A row is rejected if it is an exact copy of an item or shares at least half of its normalized text with one.</li>
+    <li><strong>Traceability.</strong> <a href="https://github.com/pst2154/nemotron-deciffusion/blob/main/release/v2/SOURCES.md">release/v2/SOURCES.md</a> lists the result file behind every number on this page, and <a href="https://github.com/pst2154/nemotron-deciffusion/blob/main/release/v2/numbers.json">release/v2/numbers.json</a> has the same values in machine-readable form.</li>
+  </ul>
+</section>
+
+<!-- ===================================================================== NVIDIA -->
+<section id="nvidia">
+  <h2>Built on NVIDIA</h2>
+  <div class="nv-grid">
+    <div><b>Base model</b>NVIDIA Nemotron-Labs-Diffusion-8B</div>
+    <div><b>Training</b>Full fine-tuning of every decoder layer</div>
+    <div><b>Serving</b><code>vllm serve</code> with bidirectional decision reads; NVFP4 in production</div>
+    <div><b>Measured on</b>NVIDIA L40S and NVIDIA GB200</div>
+  </div>
+  <ul>
+    <li><strong>Training:</strong> full fine-tuning of the decoder with soft-target cross-entropy, with the trainer released as <a href="https://github.com/pst2154/nemotron-deciffusion/blob/main/training/train_pack.py"><code>training/train_pack.py</code></a>.</li>
+    <li><strong>Serving:</strong> vLLM with bidirectional decision reads and the SystemOne adapter in one container. The vLLM changes are being upstreamed in vllm-project/vllm#60283.</li>
+    <li><strong>Precision:</strong> NVFP4 in production on Blackwell (<a href="https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4">nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4</a>, mixed NVFP4/FP8 at 6.6 effective bits for Blackwell data-center GPUs (validated on GB200), faster than FP8 there); FP8 on other GPUs (the container default), BF16 on request.</li>
+    <li><strong>Throughput:</strong> up to 201.1 decisions per second on one NVIDIA GB200 (NVFP4, concurrency 16, ~362-token prompts).</li>
+  </ul>
+</section>
+
+<!-- ===================================================================== USE CASES -->
+<section id="use-cases">
+  <h2>Use cases</h2>
+  <div class="cards">
+    <div class="card"><h4>Agent-run routing &amp; verification</h4><p>Score whether a finished agent run solved its task, or whether to continue or escalate. Long traces are compacted head+tail automatically.</p></div>
+    <div class="card"><h4>Tool selection</h4><p>Mark each candidate tool yes/no, or pick among up to 501 tools in one question.</p></div>
+    <div class="card"><h4>Policy, safety &amp; compliance</h4><p>Check requests, responses, tool calls and trajectories against a policy, including over long documents.</p></div>
+    <div class="card"><h4>Judging &amp; reranking</h4><p>Grade responses on a scale (<code>score</code>), compare candidates (<code>choice</code>) or rerank documents, with probabilities instead of parsed text.</p></div>
+    <div class="card"><h4>Classification &amp; triage</h4><p>Intents, queues and priorities, with many questions about one state batched in a single request.</p></div>
+  </div>
+  <p>Every answer comes with a probability for each option, so thresholds can be tuned on your own data for automated decisions.</p>
+</section>
+
+<!-- ===================================================================== GET STARTED -->
+<!-- BEGIN GET-STARTED: the only place on this page with run instructions; keep it in sync with the README "Run it" section. -->
+<section id="get-started">
+  <h2>Get started</h2>
+  <p><strong>1. Run the container</strong> (one GPU):</p>
+  <div class="code"><span class="lang">bash</span><button class="copy" type="button" aria-label="Copy docker command">Copy</button><pre><code>docker run -d --name deciffusion --gpus all --shm-size=8g -p 8770:8770 \
+  -v $HOME/.cache/deciffusion:/models -e HF_TOKEN ghcr.io/pst2154/nemotron-deciffusion:8b-v2</code></pre></div>
+  <p>The first start downloads the weights (about 17 GB) into the volume.</p>
+
+  <p><strong>2. Ask typed questions</strong> about a JSON state:</p>
+  <div class="code"><span class="lang">bash</span><button class="copy" type="button" aria-label="Copy curl command">Copy</button><pre><code>until curl -sf localhost:8770/health > /dev/null; do sleep 5; done  <span class="tok-c"># waits until the model is loaded</span>
+curl -s localhost:8770/v1/systemone -H 'Content-Type: application/json' -d '{
+  "model": "nemotron-deciffusion-8b",
+  "state": {"ticket": "Customer was charged twice for order 1182 and wants the duplicate refunded."},
+  "questions": {
+    "route":  {"type": "choice", "instructions": "Which team should handle this ticket?",
+               "criteria": {"billing": "Payments, refunds and invoices", "shipping": "Delivery problems",
+                            "tech": "Product bugs and outages"}},
+    "urgent": {"type": "noul", "instructions": "Does this need a reply within one hour?"}}}'</code></pre></div>
+  <p>Every option in the response has a probability.</p>
+
+  <p><strong>NVFP4 on GB200.</strong> Serve the NVFP4 checkpoint with the same image:</p>
+  <div class="code"><span class="lang">bash</span><button class="copy" type="button" aria-label="Copy NVFP4 docker command">Copy</button><pre><code>docker run -d --name deciffusion-nvfp4 --gpus all --shm-size=8g -p 8770:8770 \
+  -v $HOME/.cache/deciffusion-nvfp4:/models -e HF_TOKEN \
+  -e MODEL_ID=nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4 -e QUANTIZATION=none ghcr.io/pst2154/nemotron-deciffusion:8b-v2</code></pre></div>
+
+  <ul>
+    <li><strong>Weights:</strong> <a href="https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2">nemotron-deciffusion/Nemotron-Deciffusion-8B-v2</a> (BF16, revision <code>1dea38015e86e101eb978a33fa493818fc71e366</code>; sha256 of <code>model.safetensors</code>: <code style="overflow-wrap:anywhere">722396e8b46e34ba27db49584fea3b2be6c1797f62be58029c6ff142db072bc2</code>). NVFP4: <a href="https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4">nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4</a>.</li>
+    <li><strong>Serving:</strong> the image holds no weights: on first start it downloads the pinned Hugging Face revision into <code>/models</code>, or serves a checkpoint you mount at <code>CHECKPOINT_DIR</code>. FP8 is the default (<code>QUANTIZATION=fp8</code>); set <code>QUANTIZATION=none</code> for BF16. Prompts over 8,192 tokens are compacted (<code>COMPACT_OVER</code> / <code>COMPACT_BUDGET</code>; <code>0</code> disables it).</li>
+    <li><strong>Fine-tune on your own decisions:</strong> <a href="https://github.com/pst2154/nemotron-deciffusion/tree/main/finetune"><code>finetune/</code></a> covers the row schema, data conversion, teacher labelling, long-state rendering with the serving compactor, and LoRA and full fine-tuning on the serving forward graph.</li>
+    <li><strong>Try it in the browser:</strong> the <a href="playground/">Decision Playground</a>.</li>
+    <li><strong>Code:</strong> <a href="https://github.com/pst2154/nemotron-deciffusion">https://github.com/pst2154/nemotron-deciffusion</a>. Release post: <a href="https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b">gist</a>.</li>
+  </ul>
+</section>
+<!-- END GET-STARTED -->
+
+<!-- ===================================================================== LICENSE -->
+<section id="license">
+  <h2>License &amp; acknowledgements</h2>
+  <p>Use of this model is governed by the <a href="https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/">NVIDIA Nemotron Open Model License</a>. Built on <a href="https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B">nvidia/Nemotron-Labs-Diffusion-8B</a>. The code is released under the Apache License 2.0.</p>
+  <p>Every training source is licensed for commercial training. We thank the authors of the datasets used under attribution licenses:</p>
+  <ul>
+<li><a href="https://huggingface.co/datasets/nvidia/Aegis-AI-Content-Safety-Dataset-2.0">Aegis 2.0 / Nemotron Content Safety Dataset V2</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/When2Call">When2Call</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/HelpSteer2">HelpSteer2</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/HelpSteer3">HelpSteer3</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/OpenScience">NVIDIA OpenScience</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/Nemotron-RL-knowledge-mcqa">Nemotron-RL knowledge MCQA</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/Nemotron-Science-v1">Nemotron-Science-v1</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nvidia/Open-SWE-Traces">Open-SWE-Traces</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/nebius/SWE-rebench-openhands-trajectories">SWE-rebench OpenHands trajectories (Nebius)</a>: CC-BY-4.0</li>
+<li><a href="https://huggingface.co/datasets/AmazonScience/massive">MASSIVE (Amazon)</a>: CC-BY-4.0</li>
+<li><a href="https://github.com/nyu-mll/quality">QuALITY (Pang et al., NAACL 2022), train split</a>: CC-BY-4.0</li>
+<li><a href="https://github.com/StonyBrookNLP/musique">MuSiQue</a>: CC-BY-4.0</li>
+<li><a href="https://hotpotqa.github.io/">HotpotQA</a>: CC-BY-SA-4.0</li>
+<li><a href="https://rajpurkar.github.io/SQuAD-explorer/">SQuAD 2.0</a>: CC-BY-SA-4.0</li>
+<li><a href="https://huggingface.co/datasets/allenai/ai2_arc">AI2 ARC</a>: CC-BY-SA-4.0</li>
+<li><a href="https://ai.google.com/research/NaturalQuestions">Natural Questions (Google)</a>: CC-BY-SA-3.0</li>
+<li><a href="https://github.com/google-research-datasets/boolean-questions">BoolQ</a>: CC-BY-SA-3.0</li>
+<li><a href="https://qangaroo.cs.ucl.ac.uk/">WikiHop / QAngaroo</a>: CC-BY-SA-3.0</li>
+<li><a href="https://sharc-data.github.io/">ShARC</a>: CC-BY-SA-3.0</li>
+<li><a href="https://huggingface.co/tasksource">tasksource collection (CC-BY, CC-BY-SA and ODC-BY subsources)</a>: per subsource</li>
+<li><a href="https://github.com/openai/prm800k">PRM800K (OpenAI)</a>: MIT</li>
+<li><a href="https://huggingface.co/datasets/Anthropic/hh-rlhf">Anthropic HH-RLHF</a>: MIT</li>
+</ul>
+</section>
+
+  </article>
+</div>
+
+<footer class="site">
+  <div class="in">
+    Nemotron Deciffusion 8B v2 &middot; released 2026-10-14 &middot; <a href="https://github.com/pst2154/nemotron-deciffusion">Code</a> &middot; <a href="https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2">Weights</a> &middot; <a href="https://github.com/pst2154/nemotron-deciffusion/blob/main/release/v2/SOURCES.md">Sources for every number</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  document.querySelectorAll('.code .copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.parentElement.querySelector('pre').innerText;
+      var done = function () { btn.textContent = 'Copied'; btn.classList.add('ok');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1600); };
+      if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done); }
+      else { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+        ta.select(); try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(ta); }
+    });
+  });
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var targets = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  if (!('IntersectionObserver' in window)) return;
+  var visible = new Set();
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) visible.add(e.target); else visible.delete(e.target); });
+    var best = targets.filter(function (t) { return visible.has(t); })[0];
+    if (!best) return;
+    links.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + best.id); });
+  }, { rootMargin: '-70px 0px -65% 0px' });
+  targets.forEach(function (t) { obs.observe(t); });
+})();
+</script>
+</body>
+</html>
