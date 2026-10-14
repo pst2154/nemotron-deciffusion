@@ -1,6 +1,6 @@
 # v2 release numbers: sources (tag `v2`)
 
-Generated from the evaluation results at 2026-10-14 22:17. Paths are relative to the project directory (`--project-dir`) unless they start with `release/`. Method constants written in the prose (bin width, compaction budget) are not results and are not listed.
+Generated from the evaluation results at 2026-10-14 22:53. Paths are relative to the project directory (`--project-dir`) unless they start with `release/`. Method constants written in the prose (bin width, compaction budget) are not results and are not listed.
 
 | placeholder | value | source | how |
 |---|---|---|---|
@@ -10,12 +10,12 @@ Generated from the evaluation results at 2026-10-14 22:17. Paths are relative to
 | `AUTHOR` | Alex Steiner | `release/v2/release.json` | author |
 | `BASE_MODEL` | nvidia/Nemotron-Labs-Diffusion-8B | `release/v2/release.json` | base_model |
 | `BASE_MODEL_REVISION` | 16c67f0560b912e93e0cabb6e0c4f5c3086d95fc | `release/v2/release.json` | base_model_revision |
-| `BLOG_URL` | https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b | `release/v2/release.json` | blog_url |
+| `BLOG_URL` | https://pst2154.github.io/nemotron-deciffusion/ | `release/v2/release.json` | blog_url |
 | `CKPT_SHA256` | 722396e8b46e34ba27db49584fea3b2be6c1797f62be58029c6ff142db072bc2 | `release/v2/SHA256SUMS-v2` | sha256 of model.safetensors |
 | `CODE_LICENSE` | Apache License 2.0 | `release/v2/release.json` | code_license |
 | `CODE_URL` | https://github.com/pst2154/nemotron-deciffusion | `release/v2/release.json` | code_url |
 | `CONTAINER` | ghcr.io/pst2154/nemotron-deciffusion:8b-v2 | `release/v2/release.json` | container_image:container_tag |
-| `FILLED_AT` | 2026-10-14 22:17 | `clock` | time of the fill run |
+| `FILLED_AT` | 2026-10-14 22:53 | `clock` | time of the fill run |
 | `HF_REPO` | nemotron-deciffusion/Nemotron-Deciffusion-8B-v2 | `release/v2/release.json` | hf_repo |
 | `HF_REPO_NVFP4` | nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4 | `release/v2/release.json` | hf_repo_nvfp4 |
 | `HF_REVISION` | 1dea38015e86e101eb978a33fa493818fc71e366 | `release/v2/release.json` | hf_revision |

@@ -1,7 +1,7 @@
 {
  "tag": "v2",
  "project_dir": "<project>",
- "filled_at": "2026-10-14 22:17",
+ "filled_at": "2026-10-14 22:53",
  "values": {
   "RELEASE_DATE": {
    "text": "2026-10-14",
@@ -44,7 +44,7 @@
    "how": "code_url"
   },
   "BLOG_URL": {
-   "text": "https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b",
+   "text": "https://pst2154.github.io/nemotron-deciffusion/",
    "source": "release/v2/release.json",
    "how": "blog_url"
   },
@@ -484,7 +484,7 @@
    "how": "--tag"
   },
   "FILLED_AT": {
-   "text": "2026-10-14 22:17",
+   "text": "2026-10-14 22:53",
    "source": "clock",
    "how": "time of the fill run"
   }

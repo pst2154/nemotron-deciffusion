@@ -14,7 +14,7 @@ Built on [NVIDIA Nemotron-Labs-Diffusion-8B](https://huggingface.co/nvidia/Nemot
 |---|---|
 | **Container** | `ghcr.io/pst2154/nemotron-deciffusion:8b-v2`: `vllm serve` + SystemOne adapter, downloads the weights on first start, FP8 by default |
 | **Weights** | [`nemotron-deciffusion/Nemotron-Deciffusion-8B-v2`](https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2) (BF16, revision `1dea38015e86e101eb978a33fa493818fc71e366`); NVFP4: [nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4](https://huggingface.co/nemotron-deciffusion/Nemotron-Deciffusion-8B-v2-NVFP4), mixed NVFP4/FP8 at 6.6 effective bits for Blackwell data-center GPUs (validated on GB200), faster than FP8 there |
-| **Release post** | [https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b](https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b) (source: [docs/BLOG_v2.md](docs/BLOG_v2.md)) |
+| **Release post** | [https://pst2154.github.io/nemotron-deciffusion/](https://pst2154.github.io/nemotron-deciffusion/) (source: [docs/BLOG_v2.md](docs/BLOG_v2.md)) |
 | **Model card** | [MODEL_CARD_v2.md](MODEL_CARD_v2.md) |
 
 <p align="center"><img src="docs/site/assets/gifs/one_forward_pass.gif" width="760" alt="State and question go through one forward pass; the mask slot reads out a probability for every option."></p>

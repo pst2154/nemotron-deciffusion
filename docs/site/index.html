@@ -429,7 +429,7 @@ curl -s localhost:8770/v1/systemone -H 'Content-Type: application/json' -d '{
     <li><strong>Serving:</strong> the image holds no weights: on first start it downloads the pinned Hugging Face revision into <code>/models</code>, or serves a checkpoint you mount at <code>CHECKPOINT_DIR</code>. FP8 is the default (<code>QUANTIZATION=fp8</code>); set <code>QUANTIZATION=none</code> for BF16. Prompts over 8,192 tokens are compacted (<code>COMPACT_OVER</code> / <code>COMPACT_BUDGET</code>; <code>0</code> disables it).</li>
     <li><strong>Fine-tune on your own decisions:</strong> <a href="https://github.com/pst2154/nemotron-deciffusion/tree/main/finetune"><code>finetune/</code></a> covers the row schema, data conversion, teacher labelling, long-state rendering with the serving compactor, and LoRA and full fine-tuning on the serving forward graph.</li>
     <li><strong>Try it in the browser:</strong> the <a href="playground/">Decision Playground</a>.</li>
-    <li><strong>Code:</strong> <a href="https://github.com/pst2154/nemotron-deciffusion">https://github.com/pst2154/nemotron-deciffusion</a>. Release post: <a href="https://gist.github.com/pst2154/33a43e3f0c144f8200d3ce2f48c3925b">gist</a>.</li>
+    <li><strong>Code:</strong> <a href="https://github.com/pst2154/nemotron-deciffusion">https://github.com/pst2154/nemotron-deciffusion</a>. Release post: <a href="https://pst2154.github.io/nemotron-deciffusion/">https://pst2154.github.io/nemotron-deciffusion/</a>.</li>
   </ul>
 </section>
 <!-- END GET-STARTED -->
