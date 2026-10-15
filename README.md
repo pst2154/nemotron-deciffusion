@@ -77,6 +77,13 @@ docker run -d --name deciffusion-nvfp4 --gpus all --shm-size=8g -p 8770:8770 \
 `QUANTIZATION=none` because the quantization config is read from the checkpoint. On sm_100 the container selects the
 CUTLASS FP4 GEMM (`LINEAR_BACKEND=cutlass`).
 
+### Two-round elimination (optional)
+
+Add `"elimination": true` to a request (or start the container with `-e ELIMINATION=1` to make it the default). Each
+choice question with more than two options gets a second read over its top two options, with the other options named as
+ruled out; the two then split their first-round probability. On held-out sets from hard reasoning tasks this adds
+1.3 points of accuracy (BBH +5.3) for about 15% more latency per request (19 ms to 22 ms median on one H200).
+
 ## Build the container
 
 The bidirectional decision reads need vLLM changes that are being upstreamed (vllm-project/vllm#60283). Until they are released,

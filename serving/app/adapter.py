@@ -59,6 +59,50 @@ class UpstreamError(Exception):
         self.status = status
 
 
+ELIMINATION_DEFAULT = os.environ.get('ELIMINATION', '0') == '1'
+
+
+def elimination_payload(payload, answers):
+    """Second-round request: each choice question with more than two options, restricted to its first-round top two,
+    with the other options named as ruled out. Returns None when no question qualifies."""
+    questions = {}
+    for qid, question in (payload.get('questions') or {}).items():
+        answer = answers.get(qid) or {}
+        criteria = question.get('criteria')
+        if question.get('type') != 'choice' or not isinstance(criteria, dict) or len(criteria) <= 2:
+            continue
+        probs = answer.get('probabilities') or {}
+        ranked = sorted(criteria, key=lambda label: probs.get(label, 0.0), reverse=True)
+        keep, gone = ranked[:2], ranked[2:]
+        instructions = question.get('instructions')
+        if isinstance(instructions, str):
+            note = '; '.join(str(criteria[label]) for label in gone[:30])
+            instructions = f'{instructions}\n(Options already ruled out: {note})'
+        questions[qid] = {**question, 'instructions': instructions, 'criteria': {label: criteria[label] for label in keep}}
+    if not questions:
+        return None
+    return {**{k: v for k, v in payload.items() if k not in ('questions', 'elimination')}, 'questions': questions}
+
+
+def merge_elimination(result, refined):
+    """Fold second-round reads into first-round answers: the top two split their first-round mass by the second read;
+    every other option keeps its first-round probability."""
+    for qid, second in refined['answers'].items():
+        answer = result['answers'][qid]
+        probs = dict(answer['probabilities'])
+        p2 = second.get('probabilities') or {}
+        mass = sum(probs.get(label, 0.0) for label in p2)
+        for label, value in p2.items():
+            probs[label] = value * mass
+        answer['probabilities'] = probs
+        top = max(probs, key=probs.get)
+        answer['choice'], answer['confidence'] = top, probs[top]
+    # The same decisions are returned, so only the extra prompt tokens are added to usage.
+    usage, extra = result.get('usage'), refined.get('usage')
+    if isinstance(usage, dict) and isinstance(extra, dict) and isinstance(extra.get('input_tokens'), int):
+        usage['input_tokens'] = usage.get('input_tokens', 0) + extra['input_tokens']
+
+
 class Scorer:
     """Request -> answers. `post(path, body)` is an async JSON client returning (status, json)."""
 
@@ -86,6 +130,22 @@ class Scorer:
         return [mask_logprobs(choice) for choice in choices]
 
     async def evaluate(self, payload):
+        """Score a request. With elimination (request field `"elimination": true`, or ELIMINATION=1 as the server
+        default), choice questions with more than two options get a second read over their top two, with the other
+        options named as ruled out; the top two then share their first-round probability mass by the second read."""
+        flag = payload.get('elimination', ELIMINATION_DEFAULT) if isinstance(payload, dict) else False
+        if not isinstance(flag, bool):
+            raise ValueError('elimination must be true or false')
+        result = await self._evaluate_once(payload)
+        if not flag:
+            return result
+        second = elimination_payload(payload, result['answers'])
+        if second is not None:
+            refined = await self._evaluate_once(second)
+            merge_elimination(result, refined)
+        return result
+
+    async def _evaluate_once(self, payload):
         from vllm_scoring import answer_from_logprobs, response
         started = time.perf_counter()
         prepared, reads = await asyncio.get_running_loop().run_in_executor(

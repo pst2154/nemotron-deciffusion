@@ -208,6 +208,13 @@ UPSTREAM=http://127.0.0.1:8200 PORT=8770 python3 adapter.py
 - **Request limits:** up to 512 questions per request and 501 options per question.
 - **Code:** the adapter and the vLLM overlay files are at https://github.com/pst2154/nemotron-deciffusion.
 
+### Two-round elimination (optional)
+
+Add `"elimination": true` to a request (or start the container with `-e ELIMINATION=1` to make it the default). Each
+choice question with more than two options gets a second read over its top two options, with the other options named as
+ruled out; the two then split their first-round probability. On held-out sets from hard reasoning tasks this adds
+1.3 points of accuracy (BBH +5.3) for about 15% more latency per request (19 ms to 22 ms median on one H200).
+
 ## License/Terms of Use
 
 Use of this model is governed by the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/).
