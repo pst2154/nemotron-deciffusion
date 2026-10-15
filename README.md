@@ -120,3 +120,7 @@ See [evaluation/README.md](evaluation/README.md).
 - **Model:** use of this model is governed by the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/).
 - **Code:** Apache License 2.0; see [LICENSE](LICENSE).
 - **vLLM overlay:** the files in `serving/vllm-overlay/` come from vLLM and are under the Apache License 2.0.
+
+## Disclaimer
+
+Nemotron Deciffusion is a personal project. It is not an NVIDIA product and is not released, endorsed or supported by NVIDIA.

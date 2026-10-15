@@ -254,3 +254,7 @@ The model answers typed questions over the state it is given. It does not genera
 ## License
 
 Use of this model is governed by the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/). Built on [nvidia/Nemotron-Labs-Diffusion-8B](https://huggingface.co/nvidia/Nemotron-Labs-Diffusion-8B). The code is released under the Apache License 2.0.
+
+## Disclaimer
+
+Nemotron Deciffusion is a personal project. It is not an NVIDIA product and is not released, endorsed or supported by NVIDIA.
