@@ -82,11 +82,17 @@ esac
 compute_cap=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 || true)
 if [[ "$compute_cap" == 12.1 ]]; then
   : "${FLASHINFER_AUTOTUNE:=0}" "${GPU_MEMORY_UTILIZATION:=0.7}" "${MAX_MODEL_LEN:=16384}"
+  # GB10's FP8/FP4 GEMMs lose 2-4x efficiency once one scheduler step exceeds ~4k tokens (CUTLASS FP8 at M=6144 is
+  # slower than BF16), so batching 8-16 router-sized (~1k token) requests made concurrency slower than sequential
+  # (FP8: 6.9 req/s at c=1, 3.6 at c=16). Four sequences per step keep steps small: FP8 c=16 6.7 req/s, NVFP4 8.4,
+  # with unchanged single-request latency. Bidirectional reads have no KV cache, so this costs no memory.
+  : "${MAX_NUM_SEQS:=4}"
 fi
 # NVFP4 checkpoints on B200/GB200 (sm_100): vLLM's default FlashInfer CuTe-DSL FP4 GEMM adds ~12 ms per request at low
 # concurrency; the CUTLASS FP4 GEMM matches FP8 latency and serves 11-21% more tasks/s than FP8 at 16 concurrent
 # (GB200). LINEAR_BACKEND overrides (auto, cutlass, flashinfer_cutlass, flashinfer_cutedsl, ...).
-if [[ -z "${LINEAR_BACKEND:-}" && "$compute_cap" == 10.* ]] \
+# GB10 (sm_121): the CUTLASS FP4/FP8 GEMMs are ~5% faster per request than the FlashInfer ones (111 vs 117 ms p50).
+if [[ -z "${LINEAR_BACKEND:-}" && ( "$compute_cap" == 10.* || "$compute_cap" == 12.1 ) ]] \
    && grep -qs '"quant_algo": *"NVFP4"' "$CHECKPOINT_DIR/hf_quant_config.json"; then
   LINEAR_BACKEND=cutlass
 fi
