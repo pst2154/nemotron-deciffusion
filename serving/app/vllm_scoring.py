@@ -22,10 +22,10 @@ def candidate_logprob_args(candidate_ids):
 
 
 def build_reads(tokenizer, payload, mask_token_id=100, batch_tokenize=False,
-                position_ordering=True):
+                position_ordering=True, trace=None):
     """Validated, compacted, ordered prompts: (prepared, [(prompt_ids, candidate_ids)])."""
     prepared = prepare_questions(tokenizer, payload, batch_tokenize=batch_tokenize,
-                                 position_ordering=position_ordering)
+                                 position_ordering=position_ordering, trace=trace)
     codes = candidate_codes(tokenizer)
     reads = [(ids + [mask_token_id], [token for _, token in codes[:len(labels)]])
              for _, _, labels, _, ids in prepared]

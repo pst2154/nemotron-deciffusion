@@ -150,17 +150,20 @@ def _fit_state(tokenizer, state, query, meanings, items):
     return _truncated(tokenizer, out, items)
 
 
-def _compacted_ids(tokenizer, state, question, options, ids):
-    """Prompts above COMPACT_OVER tokens: compact long state text (BM25 for prose, head+tail for traces)."""
+def _compacted(tokenizer, state, question, options, ids, prompt):
+    """Prompts above COMPACT_OVER tokens: compact long state text (BM25 for prose, head+tail for traces).
+    Returns (ids, scored state, rendered prompt)."""
     compacted = _fit_state(tokenizer, state, _as_text(question['instructions']),
                            [option['meaning'] for option in options], [(question, options)])
     if compacted is state:
-        return ids
-    return tokenizer.encode(_render(tokenizer, compacted, question, options), add_special_tokens=False)
+        return ids, state, prompt
+    prompt = _render(tokenizer, compacted, question, options)
+    return tokenizer.encode(prompt, add_special_tokens=False), compacted, prompt
 
 
-def prepare_questions(tokenizer, payload, batch_tokenize=False, position_ordering=False):
-    """Shared prompt construction; disabling ordering preserves the original prompt."""
+def prepare_questions(tokenizer, payload, batch_tokenize=False, position_ordering=False, trace=None):
+    """Shared prompt construction; disabling ordering preserves the original prompt. A `trace` list receives
+    (state, rendered prompt) per question: the state text actually scored, after any compaction."""
     validate_request(payload)
     if len(payload['questions']) > 512:
         raise ValueError('At most 512 questions per request')
@@ -202,7 +205,8 @@ def prepare_questions(tokenizer, payload, batch_tokenize=False, position_orderin
         raise RuntimeError('Incomplete tokenization batch')
     shared = None  # request-scope compacted state, built once on first need
     result = []
-    for (key, kind, labels, descriptions, _, question, options), ids in zip(prepared, encoded):
+    for (key, kind, labels, descriptions, prompt, question, options), ids in zip(prepared, encoded):
+        state = payload['state']
         # Compact above the gate, and also whenever a prompt would not fit the scoring limit (small-context configs).
         if COMPACT_OVER and (len(ids) > COMPACT_OVER or len(ids) > _prompt_limit):
             if _scope == 'request':
@@ -211,11 +215,14 @@ def prepare_questions(tokenizer, payload, batch_tokenize=False, position_orderin
                     meanings = [option['meaning'] for item in prepared for option in item[6]]
                     shared = _fit_state(tokenizer, payload['state'], query, meanings,
                                         [(item[5], item[6]) for item in prepared])
-                ids = tokenizer.encode(_render(tokenizer, shared, question, options), add_special_tokens=False)
+                state, prompt = shared, _render(tokenizer, shared, question, options)
+                ids = tokenizer.encode(prompt, add_special_tokens=False)
             else:
-                ids = _compacted_ids(tokenizer, payload['state'], question, options, ids)
+                ids, state, prompt = _compacted(tokenizer, payload['state'], question, options, ids, prompt)
         if len(ids) > _prompt_limit:
             raise ValueError(f'Question {key} exceeds the {_prompt_limit}-token scoring limit')
+        if trace is not None:
+            trace.append((state, prompt))
         result.append((key, kind, labels, descriptions, ids))
     return result
 

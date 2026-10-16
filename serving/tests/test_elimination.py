@@ -46,7 +46,7 @@ def test_evaluate_runs_second_round_only_when_enabled(flag, calls):
     scorer = adapter.Scorer.__new__(adapter.Scorer)
     seen = []
 
-    async def once(payload):
+    async def once(payload, trace=None):
         seen.append(payload)
         if len(seen) == 1:
             return {'answers': {k: dict(v) for k, v in FIRST['answers'].items()}, 'usage': dict(FIRST['usage'])}

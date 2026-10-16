@@ -215,6 +215,34 @@ choice question with more than two options gets a second read over its top two o
 ruled out; the two then split their first-round probability. On held-out sets from hard reasoning tasks this adds
 1.3 points of accuracy (BBH +5.3) for about 15% more latency per request (19 ms to 22 ms median on one H200).
 
+### Explanations (optional)
+
+Add `"explain": true` to a request to see which parts of the state made each chosen answer most probable. Every
+sentence of the state's text (each string value of a JSON state) is removed in turn and the question is read
+again; a span's `delta` is how much the chosen option's probability drops without it. Spans that argue
+against the decision are listed under `counter_evidence`.
+
+```json
+"explain": {"granularity": "sentence", "top_k": 5, "questions": ["route"]}
+```
+
+`granularity` is `sentence` (default), `phrase` or `word` (sentences first, then the words of the top three);
+`questions` defaults to every choice and yes/no question; each span is removed and the question read again
+(`"occlusion": "mask"` masks the span instead). For [`examples/request.json`](examples/request.json),
+the routing answer gains this `explanation`:
+
+```json
+"explanation": {"method": "span_deletion", "granularity": "sentence", "decision": "billing",
+  "base_probability": 0.988,
+  "spans": [{"text": "Customer was charged twice for order 1182 and wants the duplicate refunded.",
+             "path": "$.ticket", "start": 0, "end": 75, "delta": 0.732}],
+  "counter_evidence": [], "truncated": false}
+```
+
+`start`/`end` are character offsets in the string at `path`. Explanations add one batched read per span (up to
+`EXPLAIN_MAX_SPANS`, default 64 per request; longer texts are grouped into larger spans), reported as
+`explain_forwards` and `explain_seconds` in `metrics`. Long states are explained as compacted for scoring.
+
 ## License/Terms of Use
 
 Use of this model is governed by the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/).

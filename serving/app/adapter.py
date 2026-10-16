@@ -112,10 +112,10 @@ class Scorer:
         self.position_ordering, self.batch_tokenize = position_ordering, batch_tokenize
         self.isolate_cache, self.mask_token_id = isolate_cache, mask_token_id
 
-    def _prepare(self, payload):
+    def _prepare(self, payload, trace=None):
         from vllm_scoring import build_reads
         return build_reads(self.tokenizer, payload, self.mask_token_id, self.batch_tokenize,
-                           self.position_ordering)
+                           self.position_ordering, trace)
 
     async def _group(self, candidate_ids, prompts, salt):
         status, data = await self.post('/v1/completions',
@@ -136,36 +136,102 @@ class Scorer:
         flag = payload.get('elimination', ELIMINATION_DEFAULT) if isinstance(payload, dict) else False
         if not isinstance(flag, bool):
             raise ValueError('elimination must be true or false')
-        result = await self._evaluate_once(payload)
-        if not flag:
-            return result
-        second = elimination_payload(payload, result['answers'])
-        if second is not None:
-            refined = await self._evaluate_once(second)
-            merge_elimination(result, refined)
+        config = None
+        if isinstance(payload, dict) and 'explain' in payload:
+            from explain import parse_explain
+            config = parse_explain(payload['explain'], payload.get('questions'))
+        reads = {} if config else None
+        result = await self._evaluate_once(payload, reads)
+        if flag:
+            second = elimination_payload(payload, result['answers'])
+            if second is not None:
+                refined_reads = {} if config else None
+                refined = await self._evaluate_once(second, refined_reads)
+                merge_elimination(result, refined)
+                if config:
+                    # Explain the read that decided between the two finalists.
+                    for key, read in refined_reads.items():
+                        reads[key] = dict(read, round='elimination', first=reads[key])
+        if config:
+            await self._explain(payload, result, config, reads)
         return result
 
-    async def _evaluate_once(self, payload):
-        from vllm_scoring import answer_from_logprobs, response
-        started = time.perf_counter()
-        prepared, reads = await asyncio.get_running_loop().run_in_executor(
-            self.executor, self._prepare, payload)
-        prepared_at = time.perf_counter()
+    async def _forward(self, reads):
+        """Logprobs at the mask for [(prompt_ids, candidate_ids)], one upstream call per candidate set."""
         # A per-request salt keeps one request's prefix blocks invisible to every other request.
         salt = uuid.uuid4().hex if self.isolate_cache else None
         groups = group_reads(reads)
         results = await asyncio.gather(*[
             self._group(candidate_ids, [reads[i][0] for i in indices], salt)
             for candidate_ids, indices in groups.items()])
-        inferred_at = time.perf_counter()
         logprobs = [None] * len(reads)
         for indices, values in zip(groups.values(), results):
             for i, value in zip(indices, values):
                 logprobs[i] = value
+        return logprobs, len(groups)
+
+    async def _explain(self, payload, result, config, reads):
+        """Occlusion explanations for the chosen answers (request field `"explain"`); see explain.py."""
+        import explain
+        started = time.perf_counter()
+        loop = asyncio.get_running_loop()
+        answers = result['answers']
+        keys = config['questions'] or list(payload['questions'])
+        jobs = []
+        for key in keys:
+            answer = answers[key]
+            if answer['type'] == 'score':
+                answer['explanation'] = explain.skipped(config)
+                continue
+            jobs.append(explain.Job(key, answer, reads[key], payload['state'], config))
+        limits = explain.budgets(explain.EXPLAIN_MAX_SPANS, len(jobs))
+        word = config['granularity'] == 'word'
+        for job, limit in zip(jobs, limits):
+            job.limit = limit
+        prepare = (lambda job: job.first_stage(self.tokenizer, self.mask_token_id))
+        await asyncio.gather(*[loop.run_in_executor(self.executor, prepare, job) for job in jobs])
+        forwards = tokens = calls = 0
+        for stage in (1, 2) if word else (1,):
+            if stage == 2:
+                await asyncio.gather(*[loop.run_in_executor(self.executor, job.second_stage) for job in jobs])
+            batch = [(prompt, job.read['candidate_ids']) for job in jobs for prompt in job.prompts]
+            if not batch:
+                continue
+            logprobs, n_calls = await self._forward(batch)
+            forwards, calls = forwards + len(batch), calls + n_calls
+            tokens += sum(len(prompt) - 1 for prompt, _ in batch)
+            at = 0
+            for job in jobs:
+                count = len(job.prompts)
+                job.record(logprobs[at:at + count])
+                at += count
+        for job in jobs:
+            answers[job.key]['explanation'] = job.explanation()
+        usage = result.get('usage')
+        if isinstance(usage, dict) and isinstance(usage.get('input_tokens'), int):
+            usage['input_tokens'] += tokens
+        result['metrics'].update(explain_seconds=time.perf_counter() - started, explain_forwards=forwards,
+                                 explain_upstream_calls=calls)
+
+    async def _evaluate_once(self, payload, trace=None):
+        """Score one request. A `trace` dict receives, per question, the read behind its answer (scored state,
+        rendered prompt, token ids, candidate ids and logprobs) for explanations."""
+        from vllm_scoring import answer_from_logprobs, response
+        started = time.perf_counter()
+        rendered = [] if trace is not None else None
+        prepared, reads = await asyncio.get_running_loop().run_in_executor(
+            self.executor, self._prepare, payload, rendered)
+        prepared_at = time.perf_counter()
+        logprobs, calls = await self._forward(reads)
+        inferred_at = time.perf_counter()
         answers = {item[0]: answer_from_logprobs(payload, item, candidate_ids, values)
                    for item, (_, candidate_ids), values in zip(prepared, reads, logprobs)}
+        if trace is not None:
+            for item, (ids, candidate_ids), values, (state, prompt) in zip(prepared, reads, logprobs, rendered):
+                trace[item[0]] = {'labels': item[2], 'ids': ids, 'candidate_ids': candidate_ids,
+                                  'logprobs': values, 'state': state, 'prompt': prompt, 'round': 'first'}
         return response(prepared, answers, started, prepared_at, inferred_at, self.position_ordering,
-                        upstream_calls=len(groups))
+                        upstream_calls=calls)
 
 
 def make_app(scorer, health_info, upstream_ready, cors_origin='*'):
